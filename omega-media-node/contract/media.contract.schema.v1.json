@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["version", "sealed", "identity", "contexts", "modes", "intents", "links", "rules"],
+  "properties": {
+    "version": { "type": "string" },
+    "sealed": { "type": "boolean", "const": true },
+
+    "identity": {
+      "type": "object",
+      "required": ["node", "founder", "authority", "defaultMode"],
+      "properties": {
+        "node": { "type": "string", "const": "OMEGA_MEDIA_NODE" },
+        "founder": { "type": "string", "const": "JEMY" },
+        "authority": { "type": "string", "const": "CANONICAL" },
+        "defaultMode": { "type": "string" }
+      }
+    },
+
+    "contexts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["defaultMode", "confidence"],
+        "properties": {
+          "defaultMode": { "type": "string" },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "locked": { "type": "boolean" }
+        }
+      }
+    },
+
+    "modes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["intentHint", "uiProfile"],
+        "properties": {
+          "intentHint": { "type": "string" },
+          "uiProfile": {
+            "type": "object",
+            "required": ["motion", "density", "ctaStyle", "tone"],
+            "properties": {
+              "motion": { "type": "number", "minimum": 0, "maximum": 1 },
+              "density": { "type": "number" },
+              "ctaStyle": { "type": "string" },
+              "tone": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
