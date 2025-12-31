@@ -1,4 +1,5 @@
 export type Mode = "SILENT" | "CONTACT" | "BUSINESS" | "FOUNDER" | "ATLAS";
+export type Intent = "OBSERVE" | "CONTACT" | "WORK" | "EXPLORE";
 
 export type ContextKey =
   | "qr"
@@ -9,8 +10,6 @@ export type ContextKey =
   | "google_ads"
   | "direct"
   | "internal_erp";
-
-export type Intent = "observe" | "contact" | "work" | "explore";
 
 export type Signals = {
   url: string;
@@ -28,11 +27,16 @@ export type DetectedContext = {
 
 export type EngineDecision = {
   context: DetectedContext;
-  intent: Intent;
   mode: Mode;
+  intent: Intent;
   confidence: number;
   priority: string[];
-  ui: { motion: number; density: number };
+  uiProfile: {
+    motion: number;
+    density: number;
+    ctaStyle: string;
+    tone: string;
+  };
 };
 
-export type Contract = any; // keep v1 flexible; we’ll strict-type in v2
+export type Contract = any; // v1 flexible — v2 will be strict

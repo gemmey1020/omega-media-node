@@ -7,20 +7,30 @@ export function omegaMediaEngine(
   contract: Contract,
   signals: Signals
 ): EngineDecision {
+  // 1) Context
   const context = detectContext(contract, signals);
-  const { mode, confidence } = selectMode(contract, context);
-  const intent = inferIntent(mode, contract);
 
+  // 2) Mode
+  const { mode, confidence } = selectMode(contract, context);
+
+  // 3) Intent
+  const intent = inferIntent(contract, mode);
+
+  // 4) Priority + UI profile (pure mapping)
   const priority = contract?.intents?.[intent]?.priority || [];
-  const motion = Number(contract?.modes?.[mode]?.motion ?? 0.25);
-  const density = Number(contract?.modes?.[mode]?.density ?? 1.0);
+  const uiProfile = contract?.modes?.[mode]?.uiProfile || {
+    motion: 0.25,
+    density: 1.0,
+    ctaStyle: "SOFT",
+    tone: "CALM",
+  };
 
   return {
     context,
-    intent,
     mode,
+    intent,
     confidence,
     priority,
-    ui: { motion, density },
+    uiProfile,
   };
 }
