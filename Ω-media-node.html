@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ω Media Link — Omega HUD Atlas (Executive Control)</title>
+
+  <!-- ============================================================
+     Ω MEDIA LINK — OMEGA HUD ATLAS (EXECUTIVE CONTROL)
+     Primary Language: EN
+     Secondary Language: AR
+     Mode3 Toggle: EN / AR / ATLAS
+     ------------------------------------------------------------
+     Purpose:
+       - Present the REAL Omega Atlas (our void-native HUD language)
+       - Explain old vs new shift (static link -> aware node)
+       - Provide executive controls for density/motion/print
+     ============================================================ -->
+
+  <style>
+    /* ===========================
+       Ω ROOT TOKENS (VOID NATIVE)
+       =========================== */
+    :root{
+      --bg0:#05060b;
+      --bg1:#070a14;
+      --bg2:#0a1022;
+
+      --ink:#eaf2ff;
+      --muted:rgba(234,242,255,.66);
+      --dim:rgba(234,242,255,.45);
+
+      --cyan:#00e5ff;
+      --teal:#00ffd5;
+      --orange:#f47b46;
+
+      --good:#2de3a3;
+      --warn:#ffd06a;
+      --bad:#ff5b7a;
+
+      --glass: rgba(12, 18, 36, .64);
+      --glass2: rgba(8, 12, 22, .66);
+      --line: rgba(0,229,255,.22);
+      --line2: rgba(244,123,70,.22);
+
+      --blur: blur(18px) saturate(150%);
+      --shadow: 0 18px 70px rgba(0,0,0,.55);
+
+      --r: 18px;
+      --r2: 26px;
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+
+      /* runtime switches (JS edits) */
+      --motion: 1;     /* 0..1 */
+      --density: 1;    /* 0.85..1.15 */
+      --contrast: 1;   /* 1..1.2 */
+      --glow: 1;       /* 0..1 */
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 14% 18%, rgba(0,229,255,.11), transparent 60%),
+        radial-gradient(900px 600px at 86% 14%, rgba(244,123,70,.10), transparent 58%),
+        radial-gradient(700px 500px at 60% 84%, rgba(0,255,213,.08), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 42%, var(--bg2));
+      overflow-x:hidden;
+      transform: translateZ(0);
+      filter: contrast(var(--contrast));
+    }
+
+    /* ===========================
+       Ω VOID GRID + HUD NOISE
+       =========================== */
+    .void-overlay::before{
+      content:"";
+      position:fixed; inset:0;
+      background:
+        linear-gradient(to right, rgba(0,229,255,.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(244,123,70,.04) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity:.9;
+      pointer-events:none;
+      mask-image: radial-gradient(circle at 28% 22%, black 0%, black 35%, transparent 72%);
+    }
+    .void-overlay::after{
+      content:"";
+      position:fixed; inset:0;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(0,229,255,.10), transparent 36%),
+        radial-gradient(circle at 86% 12%, rgba(244,123,70,.10), transparent 40%),
+        radial-gradient(circle at 50% 90%, rgba(0,255,213,.08), transparent 45%);
+      pointer-events:none;
+      opacity: calc(.55 * var(--glow));
+      mix-blend-mode: screen;
+      filter: blur(2px);
+    }
+
+    /* ===========================
+       Ω TOP BAR (HUD STRIP)
+       =========================== */
+    .topbar{
+      position:sticky; top:0; z-index:80;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:14px 18px;
+      background: rgba(6, 10, 18, .72);
+      backdrop-filter: var(--blur);
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      min-width: 260px;
+    }
+    .omegaMark{
+      width:38px; height:38px; border-radius: 14px;
+      display:grid; place-items:center;
+      border: 1px solid rgba(0,229,255,.24);
+      background:
+        radial-gradient(circle at 30% 30%, rgba(0,229,255,.9), rgba(0,229,255,.14) 52%, rgba(244,123,70,.18) 90%);
+      box-shadow: 0 0 0 7px rgba(0,229,255,.06);
+      font-weight:900;
+      letter-spacing:.4px;
+      user-select:none;
+    }
+    .brand h1{
+      margin:0;
+      font-size:13px;
+      letter-spacing:.55px;
+      line-height:1.1;
+    }
+    .brand p{
+      margin:0;
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.25;
+    }
+
+    .hudStatus{
+      display:flex; gap:10px; align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .pill{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,229,255,.20);
+      background: rgba(0,229,255,.06);
+      color: rgba(234,242,255,.88);
+      user-select:none;
+      white-space:nowrap;
+    }
+    .pill.orange{
+      border-color: rgba(244,123,70,.26);
+      background: rgba(244,123,70,.10);
+    }
+    .btn{
+      appearance:none;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--ink);
+      padding: 9px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      transition: .18s ease;
+      font-size:12px;
+      user-select:none;
+      display:flex; align-items:center; gap:8px;
+    }
+    .btn:hover{
+      transform: translateY(-1px);
+      border-color: rgba(0,229,255,.26);
+      background: rgba(0,229,255,.07);
+    }
+    .btn.primary{
+      border-color: rgba(244,123,70,.28);
+      background: rgba(244,123,70,.12);
+    }
+
+    /* ===========================
+       Ω LAYOUT
+       =========================== */
+    .wrap{
+      max-width: 1420px;
+      margin: 0 auto;
+      padding: 18px;
+      display:grid;
+      grid-template-columns: 340px 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 1080px){
+      .wrap{grid-template-columns:1fr}
+    }
+
+    /* ===========================
+       Ω SIDEBAR (ATLAS INDEX)
+       =========================== */
+    .side{
+      position:sticky;
+      top: 78px;
+      align-self:start;
+      border-radius: var(--r2);
+      background: var(--glass);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+      overflow:hidden;
+    }
+    @media (max-width: 1080px){
+      .side{position:relative; top:auto}
+    }
+    .sideHead{
+      padding:14px 14px 12px;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(0,229,255,.06), rgba(0,0,0,0));
+    }
+    .sideHeadTop{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .sideHead h2{
+      margin:0;
+      font-size:13px;
+      letter-spacing:.4px;
+    }
+    .chip{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(0,229,255,.20);
+      background: rgba(0,229,255,.06);
+      color: rgba(234,242,255,.88);
+      white-space:nowrap;
+    }
+    .chip.orange{
+      border-color: rgba(244,123,70,.24);
+      background: rgba(244,123,70,.10);
+    }
+    .mode3{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .toggle{
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+      color: rgba(234,242,255,.92);
+      border-radius: 14px;
+      padding: 10px 10px;
+      cursor:pointer;
+      transition:.18s ease;
+      text-align:center;
+      font-size:12px;
+      user-select:none;
+    }
+    .toggle:hover{
+      border-color: rgba(0,229,255,.24);
+      background: rgba(0,229,255,.06);
+      transform: translateY(-1px);
+    }
+    .toggle.active{
+      border-color: rgba(0,229,255,.34);
+      background: rgba(0,229,255,.10);
+      box-shadow: 0 0 0 7px rgba(0,229,255,.05);
+    }
+
+    .nav{
+      padding: 10px;
+      display:flex;
+      flex-direction:column;
+      gap: 7px;
+    }
+    .nav a{
+      text-decoration:none;
+      color: rgba(234,242,255,.88);
+      border: 1px solid rgba(255,255,255,.07);
+      background: rgba(0,0,0,.12);
+      padding: 10px 10px;
+      border-radius: 14px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap: 10px;
+      transition:.16s ease;
+      font-size: 12px;
+    }
+    .nav a:hover{
+      border-color: rgba(0,229,255,.24);
+      background: rgba(0,229,255,.06);
+      transform: translateX(2px);
+    }
+    .nav a .k{
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(234,242,255,.60);
+    }
+    .sideFoot{
+      padding: 12px 14px 14px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 12px;
+      line-height:1.55;
+    }
+    .sideFoot b{color: rgba(234,242,255,.90)}
+
+    /* ===========================
+       Ω MAIN PANEL
+       =========================== */
+    .main{
+      border-radius: var(--r2);
+      background: var(--glass2);
+      border: 1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+      overflow:hidden;
+      position:relative;
+    }
+    .main::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(900px 320px at 22% 0%, rgba(0,229,255,.14), transparent 60%),
+        radial-gradient(820px 300px at 86% 0%, rgba(244,123,70,.12), transparent 58%);
+      pointer-events:none;
+      opacity: calc(.9 * var(--glow));
+    }
+    .content{
+      position:relative;
+      padding: 16px 16px 26px;
+      transform: scale(var(--density));
+      transform-origin: top left;
+    }
+
+    /* ===========================
+       Ω CINEMATIC INTRO (VOID POINT)
+       =========================== */
+    .intro{
+      position:relative;
+      border-radius: var(--r2);
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.16);
+      overflow:hidden;
+      padding: 18px 18px 16px;
+      min-height: 240px;
+    }
+    canvas#void{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      opacity: calc(.95 * var(--glow));
+      pointer-events:none;
+      filter: blur(0px);
+    }
+    .introTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+      position:relative;
+      z-index:2;
+    }
+    .titleBlock h2{
+      margin:0 0 6px;
+      font-size: 18px;
+      letter-spacing:.35px;
+      color: var(--cyan);
+    }
+    .titleBlock p{
+      margin:0;
+      color: var(--muted);
+      line-height:1.65;
+      max-width: 900px;
+      font-size: 13px;
+    }
+    .sig{
+      text-align:right;
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(234,242,255,.78);
+      white-space:nowrap;
+    }
+    .sig .line{
+      display:block;
+      margin-top:8px;
+      padding-top:8px;
+      border-top: 1px solid rgba(255,255,255,.10);
+      color: rgba(234,242,255,.66);
+    }
+    .introBar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 14px;
+      position:relative;
+      z-index:2;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,229,255,.18);
+      background: rgba(0,229,255,.06);
+      color: rgba(234,242,255,.90);
+      font-size: 12px;
+      user-select:none;
+    }
+    .tag i{
+      width:8px; height:8px; border-radius:99px;
+      display:inline-block;
+      background: var(--cyan);
+      box-shadow: 0 0 0 7px rgba(0,229,255,.06);
+    }
+    .tag.orange{
+      border-color: rgba(244,123,70,.22);
+      background: rgba(244,123,70,.10);
+    }
+    .tag.orange i{
+      background: var(--orange);
+      box-shadow: 0 0 0 7px rgba(244,123,70,.08);
+    }
+
+    /* ===========================
+       Ω SECTIONS
+       =========================== */
+    .section{
+      margin-top: 14px;
+      padding: 14px 14px 12px;
+      border-radius: var(--r2);
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+    }
+    .section h3{
+      margin:0 0 8px;
+      font-size: 13px;
+      letter-spacing:.3px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .section h3 small{
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(234,242,255,.62);
+      border: 1px solid rgba(0,229,255,.16);
+      background: rgba(0,229,255,.06);
+      padding: 4px 8px;
+      border-radius: 999px;
+      white-space:nowrap;
+    }
+    .section p, .section li{
+      color: var(--muted);
+      font-size: 12.7px;
+      line-height: 1.7;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 12px;
+    }
+    @media(max-width: 1080px){
+      .grid2{grid-template-columns:1fr}
+    }
+
+    /* ===========================
+       Ω OLD vs NEW (VISUAL SPLIT)
+       =========================== */
+    .split{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    @media(max-width: 900px){
+      .split{grid-template-columns:1fr}
+    }
+    .pane{
+      border-radius: 20px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      padding: 12px 12px 12px;
+      position:relative;
+      overflow:hidden;
+    }
+    .pane::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(560px 220px at 20% 0%, rgba(0,229,255,.10), transparent 60%);
+      opacity: .9;
+      pointer-events:none;
+    }
+    .pane.old::before{
+      background: radial-gradient(560px 220px at 20% 0%, rgba(255,255,255,.06), transparent 60%);
+      opacity:.8;
+    }
+    .pane.new::before{
+      background: radial-gradient(560px 220px at 20% 0%, rgba(244,123,70,.12), transparent 60%),
+                  radial-gradient(560px 220px at 80% 0%, rgba(0,229,255,.12), transparent 60%);
+      opacity:.95;
+    }
+    .pane h4{
+      margin:0 0 8px;
+      font-size: 12.5px;
+      letter-spacing:.35px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      position:relative;
+      z-index:2;
+    }
+    .pane h4 .badge{
+      font-family:var(--mono);
+      font-size:11px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.06);
+      color: rgba(234,242,255,.84);
+      white-space:nowrap;
+    }
+    .pane.new h4 .badge{
+      border-color: rgba(0,229,255,.18);
+      background: rgba(0,229,255,.06);
+    }
+    .pane ul{
+      margin:0 0 0 18px;
+      padding:0;
+      position:relative;
+      z-index:2;
+    }
+
+    /* ===========================
+       Ω CAPABILITIES MAP
+       =========================== */
+    .capGrid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+    @media(max-width: 1080px){
+      .capGrid{grid-template-columns: 1fr 1fr}
+    }
+    @media(max-width: 560px){
+      .capGrid{grid-template-columns: 1fr}
+    }
+    .cap{
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      padding: 10px 10px;
+      min-height: 92px;
+      position:relative;
+      overflow:hidden;
+    }
+    .cap::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(360px 160px at 20% 0%, rgba(0,229,255,.10), transparent 60%);
+      opacity: calc(.8 * var(--glow));
+      pointer-events:none;
+    }
+    .cap b{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size: 12px;
+      letter-spacing:.25px;
+      position:relative;
+      z-index:2;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:99px;
+      background: var(--cyan);
+      box-shadow: 0 0 0 7px rgba(0,229,255,.06);
+      flex:0 0 auto;
+    }
+    .dot.orange{background:var(--orange); box-shadow: 0 0 0 7px rgba(244,123,70,.08);}
+    .dot.teal{background:var(--teal); box-shadow: 0 0 0 7px rgba(0,255,213,.07);}
+    .cap span{
+      display:block;
+      margin-top: 6px;
+      color: rgba(234,242,255,.62);
+      font-size: 11.5px;
+      line-height:1.55;
+      position:relative;
+      z-index:2;
+    }
+
+    /* ===========================
+       Ω EXEC CONTROL PANEL
+       =========================== */
+    .ctrl{
+      position:fixed;
+      top: 92px;
+      right: 14px;
+      z-index: 120;
+      width: 320px;
+      border-radius: 22px;
+      background: rgba(8, 12, 22, .78);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: var(--blur);
+      box-shadow: 0 18px 70px rgba(0,0,0,.55);
+      overflow:hidden;
+      transform: translateY(0);
+      transition: .22s ease;
+    }
+    .ctrl.hidden{transform: translateY(-12px) translateX(370px); opacity:0; pointer-events:none;}
+    .ctrlHead{
+      padding: 12px 12px 10px;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: linear-gradient(180deg, rgba(0,229,255,.08), rgba(0,0,0,0));
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .ctrlHead b{
+      font-size:12px;
+      letter-spacing:.3px;
+    }
+    .ctrlBody{padding: 10px 12px 12px;}
+    .row{
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items:center;
+      padding: 8px 0;
+      border-bottom: 1px dashed rgba(255,255,255,.10);
+    }
+    .row:last-child{border-bottom:none}
+    .row label{
+      font-size: 12px;
+      color: rgba(234,242,255,.84);
+    }
+    .row small{
+      display:block;
+      color: rgba(234,242,255,.54);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+    input[type="range"]{
+      width: 140px;
+      accent-color: var(--cyan);
+    }
+    .mini{
+      font-family:var(--mono);
+      font-size:11px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(0,229,255,.18);
+      background: rgba(0,229,255,.06);
+      color: rgba(234,242,255,.88);
+      cursor:pointer;
+      user-select:none;
+    }
+    .mini.orange{
+      border-color: rgba(244,123,70,.22);
+      background: rgba(244,123,70,.10);
+    }
+    .mini:hover{transform: translateY(-1px)}
+    .ctrlFoot{
+      padding: 10px 12px 12px;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display:flex; gap:8px; flex-wrap:wrap;
+    }
+
+    /* ===========================
+       Ω LANGUAGE / MODE VISIBILITY
+       =========================== */
+    [data-lang]{display:none}
+    body[data-mode="EN"]  [data-lang="EN"]{display:block}
+    body[data-mode="AR"]  [data-lang="AR"]{display:block}
+    body[data-mode="ATLAS"] [data-lang="ATLAS"]{display:block}
+
+    /* ===========================
+       Ω PRINT MODE
+       =========================== */
+    @media print{
+      body{background:#fff;color:#111;filter:none}
+      .void-overlay::before,.void-overlay::after,.ctrl,.topbar{display:none!important}
+      .wrap{max-width:none;padding:0}
+      .side{display:none}
+      .main{box-shadow:none;border:none;background:#fff}
+      .intro,.section,.pane,.cap{border:1px solid #ddd;background:#fff}
+      .section p,.section li,.titleBlock p{color:#333}
+      canvas#void{display:none}
+      a{color:#000!important;text-decoration:none}
+    }
+
+    /* ===========================
+       Ω REDUCED MOTION
+       =========================== */
+    @media (prefers-reduced-motion: reduce){
+      :root{--motion:0}
+      *{scroll-behavior:auto!important}
+    }
+
+    /* ===========================
+       Ω WATERMARK + SIGNATURE
+       =========================== */
+    .wm{
+      position:fixed;
+      left: 14px;
+      bottom: 14px;
+      z-index: 90;
+      pointer-events:none;
+      opacity:.22;
+      font-family: var(--mono);
+      font-size: 11px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: var(--blur);
+      padding: 8px 10px;
+      border-radius: 14px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      max-width: 70vw;
+    }
+    .wm i{
+      width:8px;height:8px;border-radius:99px;
+      background: var(--orange);
+      box-shadow: 0 0 0 7px rgba(244,123,70,.08);
+    }
+    .wm b{color: rgba(234,242,255,.86)}
+    .wm span{color: rgba(234,242,255,.62)}
+  </style>
+</head>
+
+<body class="void-overlay" data-mode="EN">
+  <!-- ===========================
+       Ω EXEC CONTROL PANEL
+       =========================== -->
+  <aside class="ctrl" id="ctrl">
+    <div class="ctrlHead">
+      <b>Ω Executive Control</b>
+      <button class="btn" id="ctrlClose" title="Hide panel (H)">Hide</button>
+    </div>
+
+    <div class="ctrlBody">
+      <div class="row">
+        <div>
+          <label>Motion</label>
+          <small>Controls cinematic intensity (0..1)</small>
+        </div>
+        <input id="rngMotion" type="range" min="0" max="1" step="0.01" value="1" />
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Density</label>
+          <small>Compact vs expanded layout</small>
+        </div>
+        <input id="rngDensity" type="range" min="0.85" max="1.15" step="0.01" value="1" />
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Glow</label>
+          <small>HUD glow / void energy</small>
+        </div>
+        <input id="rngGlow" type="range" min="0" max="1" step="0.01" value="1" />
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Contrast</label>
+          <small>Executive readability boost</small>
+        </div>
+        <input id="rngContrast" type="range" min="1" max="1.2" step="0.01" value="1" />
+      </div>
+
+      <div class="row">
+        <div>
+          <label>Quick Actions</label>
+          <small>Print / Reset / Snapshot</small>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+          <span class="mini" id="btnPrint">Print / PDF</span>
+          <span class="mini orange" id="btnReset">Reset</span>
+          <span class="mini" id="btnSnap">Snapshot</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ctrlFoot">
+      <span class="mini" id="btnModeEN">Mode: EN</span>
+      <span class="mini" id="btnModeAR">Mode: AR</span>
+      <span class="mini orange" id="btnModeATLAS">Mode: ATLAS</span>
+      <span class="mini" id="btnFocus">Focus Intro</span>
+    </div>
+  </aside>
+
+  <!-- ===========================
+       Ω TOP BAR
+       =========================== -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="omegaMark">Ω</div>
+      <div>
+        <h1>Ω Media Link — Omega HUD Atlas</h1>
+        <p>Executive-grade narrative • Old → New Shift • Mode3 Toggle</p>
+      </div>
+    </div>
+
+    <div class="hudStatus">
+      <span class="pill" id="pillMode">MODE: EN</span>
+      <span class="pill orange" id="pillPulse">VOID: ACTIVE</span>
+      <button class="btn" id="btnToggleCtrl" title="Toggle control panel (H)">Controls</button>
+      <button class="btn primary" id="btnPrintTop" title="Print / Save PDF">Print</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- ===========================
+         Ω SIDEBAR
+         =========================== -->
+    <aside class="side">
+      <div class="sideHead">
+        <div class="sideHeadTop">
+          <h2>Atlas Index</h2>
+          <span class="chip orange">Ω-MEDIA-NODE</span>
+        </div>
+
+        <div class="mode3" role="tablist" aria-label="Mode3 toggle">
+          <div class="toggle active" data-setmode="EN" title="Primary">EN</div>
+          <div class="toggle" data-setmode="AR" title="Secondary">AR</div>
+          <div class="toggle" data-setmode="ATLAS" title="Deep Atlas">ATLAS</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a href="#intro"><span>Void Entry</span><span class="k">#00</span></a>
+        <a href="#exec"><span>Executive Summary</span><span class="k">#01</span></a>
+        <a href="#oldnew"><span>Old vs New</span><span class="k">#02</span></a>
+        <a href="#shift"><span>The Shift</span><span class="k">#03</span></a>
+        <a href="#caps"><span>Capabilities Map</span><span class="k">#04</span></a>
+        <a href="#modes"><span>Mode Engine</span><span class="k">#05</span></a>
+        <a href="#impact"><span>Business Impact</span><span class="k">#06</span></a>
+        <a href="#people"><span>Rama & Dania</span><span class="k">#07</span></a>
+        <a href="#roadmap"><span>Roadmap</span><span class="k">#08</span></a>
+        <a href="#gov"><span>Governance</span><span class="k">#09</span></a>
+        <a href="#contract"><span>Contract Preview</span><span class="k">#10</span></a>
+        <a href="#close"><span>Seal & Signature</span><span class="k">#11</span></a>
+      </nav>
+
+      <div class="sideFoot">
+        <b>Rule:</b> UI does not decide. The engine decides. The UI obeys.
+        <br/><b>Keys:</b> H (Controls) • 1/2/3 (Modes) • P (Print)
+      </div>
+    </aside>
+
+    <!-- ===========================
+         Ω MAIN
+         =========================== -->
+    <main class="main">
+      <div class="content">
+
+        <!-- ===== INTRO ===== -->
+        <section class="intro" id="intro">
+          <canvas id="void"></canvas>
+
+          <div class="introTop">
+            <div class="titleBlock">
+              <h2 data-lang="EN">Void Entry — The Glowing Point</h2>
+              <h2 data-lang="AR" style="direction:rtl;text-align:right;color:var(--cyan);">الدخول من الفراغ — النقطة المتوهجة</h2>
+              <h2 data-lang="ATLAS">Atlas Core — Our Void-Native Definition</h2>
+
+              <p data-lang="EN">
+                This is not “a linktree”. This is <b>Ω Media Link</b> as a public-facing Omega Node:
+                context-aware, intent-driven, mode-based, and executive-controlled.
+              </p>
+
+              <p data-lang="AR" style="direction:rtl;text-align:right;">
+                ده مش “لينك تري”. ده <b>Ω Media Link</b> كعقدة عامة من الأوميجا:
+                واعية بالسياق، مبنية على النية، بتشتغل بالمودات، وتحت سيطرة تنفيذية.
+              </p>
+
+              <p data-lang="ATLAS">
+                In our void, “pretty UI” is irrelevant. We build <b>capability</b> and <b>authority</b>.
+                This atlas proves the shift: from a static page into an awareness node that routes reality.
+              </p>
+            </div>
+
+            <div class="sig">
+              <div>Ω HUD ATLAS / EXEC CONTROL</div>
+              <div class="line">Founder / Architect: Jemy</div>
+            </div>
+          </div>
+
+          <div class="introBar">
+            <span class="tag"><i></i><span data-lang="EN">Primary: English Executive Narrative</span><span data-lang="AR" style="direction:rtl">الأساسي: إنجليزي تنفيذي</span><span data-lang="ATLAS">Primary: Executive Authority Layer</span></span>
+            <span class="tag orange"><i></i><span data-lang="EN">Mode3: EN / AR / ATLAS</span><span data-lang="AR" style="direction:rtl">مود ثلاثي: EN / AR / ATLAS</span><span data-lang="ATLAS">Mode Engine visible + controllable</span></span>
+            <span class="tag"><i></i><span data-lang="EN">Print/PDF ready (Board-safe)</span><span data-lang="AR" style="direction:rtl">جاهز للطباعة/PDF</span><span data-lang="ATLAS">Export is part of the ritual</span></span>
+          </div>
+        </section>
+
+        <!-- ===== EXEC SUMMARY ===== -->
+        <section class="section" id="exec">
+          <h3>
+            <span data-lang="EN">01) Executive Summary</span>
+            <span data-lang="AR" style="direction:rtl">١) ملخص تنفيذي</span>
+            <span data-lang="ATLAS">01) Executive Thesis (Void-native)</span>
+            <small>BOARD VIEW</small>
+          </h3>
+
+          <div class="grid2">
+            <div>
+              <p data-lang="EN">
+                Media Link used to be a static directory. It had presence, but no intelligence.
+                Ω upgrades it into a node that adapts to context and intent, shaping the visitor’s next action.
+              </p>
+              <p data-lang="AR" style="direction:rtl;text-align:right;">
+                الميديا لينك كان مجرد قائمة ثابتة. له حضور بس من غير ذكاء.
+                الأوميجا بتحوله لعقدة بتتكيّف مع السياق والنية، وتوجّه الزائر للخطوة الصح.
+              </p>
+              <p data-lang="ATLAS">
+                The shift is not cosmetic. It is a capability evolution:
+                <b>Static → Aware</b>, <b>One-view → Mode-driven</b>, <b>Links → Routing</b>.
+              </p>
+            </div>
+
+            <div>
+              <div class="capGrid" style="grid-template-columns: 1fr 1fr;">
+                <div class="cap">
+                  <b><span class="dot"></span>Conversion Quality</b>
+                  <span data-lang="EN">Show what matters to the visitor.</span>
+                  <span data-lang="AR" style="direction:rtl">نظهر المهم للزائر.</span>
+                  <span data-lang="ATLAS">The interface becomes a decision field.</span>
+                </div>
+                <div class="cap">
+                  <b><span class="dot orange"></span>Brand Authority</b>
+                  <span data-lang="EN">Control the narrative by mode.</span>
+                  <span data-lang="AR" style="direction:rtl">نضبط السرد بالمود.</span>
+                  <span data-lang="ATLAS">Authority is a UI outcome.</span>
+                </div>
+                <div class="cap">
+                  <b><span class="dot teal"></span>Attribution</b>
+                  <span data-lang="EN">Context tags + intent inference.</span>
+                  <span data-lang="AR" style="direction:rtl">وسوم سياق + استنتاج نية.</span>
+                  <span data-lang="ATLAS">Signals can be emitted without noise.</span>
+                </div>
+                <div class="cap">
+                  <b><span class="dot"></span>Scalability</b>
+                  <span data-lang="EN">Contract-first, UI obeys.</span>
+                  <span data-lang="AR" style="direction:rtl">عقدة أولًا، والواجهة تتبع.</span>
+                  <span data-lang="ATLAS">Anti-drift by design.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== OLD VS NEW ===== -->
+        <section class="section" id="oldnew">
+          <h3>
+            <span data-lang="EN">02) Old vs New (The Visible Break)</span>
+            <span data-lang="AR" style="direction:rtl">٢) القديم vs الجديد (الانكسار المرئي)</span>
+            <span data-lang="ATLAS">02) Reality Split (Before / After)</span>
+            <small>COMPARISON</small>
+          </h3>
+
+          <div class="split">
+            <div class="pane old">
+              <h4>
+                <span data-lang="EN">OLD: Static Media Link</span>
+                <span data-lang="AR" style="direction:rtl">القديم: ميديا لينك ثابت</span>
+                <span data-lang="ATLAS">OLD STATE</span>
+                <span class="badge">PASSIVE</span>
+              </h4>
+              <ul>
+                <li data-lang="EN">Same links for everyone, same order.</li>
+                <li data-lang="EN">No context, no intent, no modes.</li>
+                <li data-lang="EN">Brand presence only (no performance layer).</li>
+                <li data-lang="EN">Cannot evolve without manual redesign.</li>
+
+                <li data-lang="AR" style="direction:rtl">نفس الروابط لكل الناس بنفس الترتيب.</li>
+                <li data-lang="AR" style="direction:rtl">لا سياق، لا نية، لا مودات.</li>
+                <li data-lang="AR" style="direction:rtl">حضور براند فقط (بدون طبقة أداء).</li>
+                <li data-lang="AR" style="direction:rtl">التطوير يتطلب إعادة تصميم يدوي.</li>
+
+                <li data-lang="ATLAS">A directory disguised as a system.</li>
+                <li data-lang="ATLAS">No authority, no adaptation.</li>
+              </ul>
+            </div>
+
+            <div class="pane new">
+              <h4>
+                <span data-lang="EN">NEW: Ω Media Link Node</span>
+                <span data-lang="AR" style="direction:rtl">الجديد: Ω Media Link كعقدة</span>
+                <span data-lang="ATLAS">NEW STATE</span>
+                <span class="badge">ACTIVE</span>
+              </h4>
+              <ul>
+                <li data-lang="EN"><b>Context-aware:</b> source/referrer/UTM/time/device.</li>
+                <li data-lang="EN"><b>Intent-driven:</b> contact/work/observe/explore.</li>
+                <li data-lang="EN"><b>Mode engine:</b> UI changes without redesign.</li>
+                <li data-lang="EN"><b>Executive control:</b> density/motion/print/snapshots.</li>
+
+                <li data-lang="AR" style="direction:rtl"><b>واعي بالسياق:</b> مصدر/Referrer/UTM/وقت/جهاز.</li>
+                <li data-lang="AR" style="direction:rtl"><b>مبني على النية:</b> تواصل/عمل/مراقبة/استكشاف.</li>
+                <li data-lang="AR" style="direction:rtl"><b>محرك مودات:</b> الواجهة تتغير بدون إعادة تصميم.</li>
+                <li data-lang="AR" style="direction:rtl"><b>تحكم تنفيذي:</b> كثافة/حركة/طباعة/لقطات.</li>
+
+                <li data-lang="ATLAS">A node that routes reality.</li>
+                <li data-lang="ATLAS">Authority emerges from determinism.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== SHIFT ===== -->
+        <section class="section" id="shift">
+          <h3>
+            <span data-lang="EN">03) The Shift (Why Now)</span>
+            <span data-lang="AR" style="direction:rtl">٣) النقلة (ليه دلوقتي؟)</span>
+            <span data-lang="ATLAS">03) The Market Collapse of Static Pages</span>
+            <small>WHY</small>
+          </h3>
+
+          <p data-lang="EN">
+            Traffic sources are fragmented (Meta, Google, QR, WhatsApp, referrals). Each source implies a different visitor mindset.
+            A static page forces a single narrative—reducing conversion quality and weakening brand authority.
+          </p>
+
+          <p data-lang="AR" style="direction:rtl;text-align:right;">
+            مصادر الترافيك بقت متشظية (ميتا، جوجل، QR، واتساب، إحالات). كل مصدر بيحمل نية مختلفة.
+            الصفحة الثابتة بتفرض سرد واحد… فتقلل جودة التحويل وتضعف هيبة البراند.
+          </p>
+
+          <p data-lang="ATLAS">
+            Static pages became an insult to modern attention. The void does not accept “one view for all”.
+            We shape experiences based on context—without begging the user for inputs.
+          </p>
+        </section>
+
+        <!-- ===== CAPABILITIES ===== -->
+        <section class="section" id="caps">
+          <h3>
+            <span data-lang="EN">04) Capabilities Map (Not Features)</span>
+            <span data-lang="AR" style="direction:rtl">٤) خريطة القدرات (مش Features)</span>
+            <span data-lang="ATLAS">04) Capability Grid (Authority Layer)</span>
+            <small>POWER</small>
+          </h3>
+
+          <div class="capGrid">
+            <div class="cap">
+              <b><span class="dot"></span>Context Detection</b>
+              <span data-lang="EN">Referrer, UTM, time, device, language, return.</span>
+              <span data-lang="AR" style="direction:rtl">Referrer و UTM والوقت والجهاز واللغة والعودة.</span>
+              <span data-lang="ATLAS">The node “sees” without asking.</span>
+            </div>
+
+            <div class="cap">
+              <b><span class="dot teal"></span>Intent Inference</b>
+              <span data-lang="EN">Infer: contact / work / observe / explore.</span>
+              <span data-lang="AR" style="direction:rtl">استنتاج: تواصل / عمل / مراقبة / استكشاف.</span>
+              <span data-lang="ATLAS">Intent is extracted, not requested.</span>
+            </div>
+
+            <div class="cap">
+              <b><span class="dot orange"></span>Mode Engine</b>
+              <span data-lang="EN">Deterministic modes drive UI & copy.</span>
+              <span data-lang="AR" style="direction:rtl">مودات حاسمة تحكم الواجهة والنص.</span>
+              <span data-lang="ATLAS">UI obeys. Engine decides.</span>
+            </div>
+
+            <div class="cap">
+              <b><span class="dot"></span>Dynamic Ordering</b>
+              <span data-lang="EN">Show the right links first—by mode.</span>
+              <span data-lang="AR" style="direction:rtl">نقدم الروابط الصحيحة أولًا حسب المود.</span>
+              <span data-lang="ATLAS">Sequence is strategy.</span>
+            </div>
+
+            <div class="cap">
+              <b><span class="dot teal"></span>Executive Control</b>
+              <span data-lang="EN">Density, motion, readability, print, snapshots.</span>
+              <span data-lang="AR" style="direction:rtl">كثافة، حركة، وضوح، طباعة، لقطات.</span>
+              <span data-lang="ATLAS">Control panel is part of the ritual.</span>
+            </div>
+
+            <div class="cap">
+              <b><span class="dot"></span>Board-safe Export</b>
+              <span data-lang="EN">Print/PDF with the same identity.</span>
+              <span data-lang="AR" style="direction:rtl">طباعة/PDF بنفس الهوية.</span>
+              <span data-lang="ATLAS">Proof must survive outside the browser.</span>
+            </div>
+
+            <div class="cap">
+              <b><span class="dot orange"></span>Signals (Optional)</b>
+              <span data-lang="EN">Emit minimal events without heavy tracking.</span>
+              <span data-lang="AR" style="direction:rtl">إرسال أحداث بسيطة بدون تتبع ثقيل.</span>
+              <span data-lang="ATLAS">Memory-friendly awareness.</span>
+            </div>
+
+            <div class="cap">
+              <b><span class="dot"></span>Contract-first</b>
+              <span data-lang="EN">One truth file drives everything.</span>
+              <span data-lang="AR" style="direction:rtl">ملف حقيقة واحد يحكم كل شيء.</span>
+              <span data-lang="ATLAS">Anti-drift is enforced structurally.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== MODE ENGINE ===== -->
+        <section class="section" id="modes">
+          <h3>
+            <span data-lang="EN">05) Mode Engine (Deterministic)</span>
+            <span data-lang="AR" style="direction:rtl">٥) محرك المودات (حاسم)</span>
+            <span data-lang="ATLAS">05) Mode Matrix (Void Rules)</span>
+            <small>ENGINE</small>
+          </h3>
+
+          <div class="grid2">
+            <div>
+              <p data-lang="EN">
+                Modes are not “themes”. Modes are behavior contracts.
+                They decide: ordering, messaging, density, motion, and CTA.
+              </p>
+              <p data-lang="AR" style="direction:rtl;text-align:right;">
+                المودات مش “ثيمات”. المودات هي عقود سلوك.
+                بتحدد الترتيب، الرسائل، الكثافة، الحركة، والـ CTA.
+              </p>
+              <p data-lang="ATLAS">
+                A mode is a stance. The node selects a stance based on context.
+                This prevents random UI and kills drift.
+              </p>
+              <ul>
+                <li data-lang="EN"><b>SILENT</b> → minimal, calm, observe-first.</li>
+                <li data-lang="EN"><b>CONTACT</b> → action-first, WhatsApp/Call/Email.</li>
+                <li data-lang="EN"><b>BUSINESS</b> → proof-first, cases, portfolio.</li>
+                <li data-lang="EN"><b>FOUNDER</b> → signature, authority, cinematic.</li>
+
+                <li data-lang="AR" style="direction:rtl"><b>SILENT</b> → بسيط وهادئ (مراقبة أولًا).</li>
+                <li data-lang="AR" style="direction:rtl"><b>CONTACT</b> → تنفيذ سريع (واتساب/اتصال/إيميل).</li>
+                <li data-lang="AR" style="direction:rtl"><b>BUSINESS</b> → إثبات وقصص نجاح.</li>
+                <li data-lang="AR" style="direction:rtl"><b>FOUNDER</b> → توقيع وهيبة وسينماتيك.</li>
+
+                <li data-lang="ATLAS">Modes are the discipline of the surface.</li>
+              </ul>
+            </div>
+
+            <div>
+              <div class="pane new">
+                <h4>
+                  <span data-lang="EN">Example Determinism</span>
+                  <span data-lang="AR" style="direction:rtl">مثال على الحسم</span>
+                  <span data-lang="ATLAS">Rule Sketch</span>
+                  <span class="badge">NO DRIFT</span>
+                </h4>
+                <ul>
+                  <li data-lang="EN">IF source == "qr" → CONTACT</li>
+                  <li data-lang="EN">IF source == "linkedin" → BUSINESS</li>
+                  <li data-lang="EN">IF source == "instagram" → SILENT</li>
+                  <li data-lang="EN">IF internal token → ATLAS/FOUNDER</li>
+
+                  <li data-lang="AR" style="direction:rtl">لو المصدر QR → CONTACT</li>
+                  <li data-lang="AR" style="direction:rtl">لو لينكدإن → BUSINESS</li>
+                  <li data-lang="AR" style="direction:rtl">لو إنستجرام → SILENT</li>
+                  <li data-lang="AR" style="direction:rtl">لو داخلي → ATLAS/FOUNDER</li>
+
+                  <li data-lang="ATLAS">Rules are explicit. Silence is never used.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== IMPACT ===== -->
+        <section class="section" id="impact">
+          <h3>
+            <span data-lang="EN">06) Business Impact</span>
+            <span data-lang="AR" style="direction:rtl">٦) الأثر البيزنس</span>
+            <span data-lang="ATLAS">06) Impact as a Field (Not a Claim)</span>
+            <small>RESULT</small>
+          </h3>
+
+          <div class="split">
+            <div class="pane">
+              <h4>
+                <span data-lang="EN">Marketing Wins</span>
+                <span data-lang="AR" style="direction:rtl">مكاسب الماركتنج</span>
+                <span data-lang="ATLAS">Rama Layer</span>
+                <span class="badge">CONVERSION</span>
+              </h4>
+              <ul>
+                <li data-lang="EN">Higher-quality clicks (right action, right user).</li>
+                <li data-lang="EN">Clear attribution by context + intent.</li>
+                <li data-lang="EN">Campaign-specific routing without redesign.</li>
+                <li data-lang="EN">Brand perception: premium + controlled.</li>
+
+                <li data-lang="AR" style="direction:rtl">نقرات أجود (الفعل الصحيح للزائر الصحيح).</li>
+                <li data-lang="AR" style="direction:rtl">نِسب واضحة حسب السياق والنية.</li>
+                <li data-lang="AR" style="direction:rtl">توجيه حملات بدون إعادة تصميم.</li>
+                <li data-lang="AR" style="direction:rtl">إحساس براند Premium ومسيطر.</li>
+
+                <li data-lang="ATLAS">Marketing becomes orchestration, not posting.</li>
+              </ul>
+            </div>
+
+            <div class="pane">
+              <h4>
+                <span data-lang="EN">Business Dev Wins</span>
+                <span data-lang="AR" style="direction:rtl">مكاسب البيزنس ديف</span>
+                <span data-lang="ATLAS">Dania Layer</span>
+                <span class="badge">SCALE</span>
+              </h4>
+              <ul>
+                <li data-lang="EN">Productizable: contract-first, mode-driven.</li>
+                <li data-lang="EN">Expandable: signals → CRM → dashboards.</li>
+                <li data-lang="EN">Differentiation: “node” not “page”.</li>
+                <li data-lang="EN">Roadmap is clear and defensible.</li>
+
+                <li data-lang="AR" style="direction:rtl">قابل للتحويل لمنتج: عقدة أولًا، مودات.</li>
+                <li data-lang="AR" style="direction:rtl">قابل للتوسّع: إشارات → CRM → داشبورد.</li>
+                <li data-lang="AR" style="direction:rtl">تميّز: “عقدة” مش “صفحة”.</li>
+                <li data-lang="AR" style="direction:rtl">روودماب واضحة ويمكن الدفاع عنها.</li>
+
+                <li data-lang="ATLAS">Business sees a platform, not a template.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== PEOPLE ===== -->
+        <section class="section" id="people">
+          <h3>
+            <span data-lang="EN">07) Audience Brief — Rama & Dania</span>
+            <span data-lang="AR" style="direction:rtl">٧) بريڤ — راما ودانيا</span>
+            <span data-lang="ATLAS">07) Human Layer Mapping</span>
+            <small>ALIGNMENT</small>
+          </h3>
+
+          <div class="capGrid" style="grid-template-columns: 1fr 1fr;">
+            <div class="cap">
+              <b><span class="dot orange"></span>Rama (Marketing Manager)</b>
+              <span data-lang="EN">Wants: conversion, attribution, fast campaign routing, brand control.</span>
+              <span data-lang="AR" style="direction:rtl">عايزة: تحويل، نسب، توجيه سريع للحملات، تحكم بالهوية.</span>
+              <span data-lang="ATLAS">She will recognize control as power.</span>
+            </div>
+            <div class="cap">
+              <b><span class="dot teal"></span>Dania (Business Developer)</b>
+              <span data-lang="EN">Wants: product narrative, scalability, differentiation, defensible roadmap.</span>
+              <span data-lang="AR" style="direction:rtl">عايزة: سرد منتج، قابلية توسع، تميّز، روودماب قوية.</span>
+              <span data-lang="ATLAS">She will see the node as a platform.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===== ROADMAP ===== -->
+        <section class="section" id="roadmap">
+          <h3>
+            <span data-lang="EN">08) Roadmap (Controlled Expansion)</span>
+            <span data-lang="AR" style="direction:rtl">٨) خريطة الطريق (توسع مضبوط)</span>
+            <span data-lang="ATLAS">08) Phases + Gates</span>
+            <small>PLAN</small>
+          </h3>
+
+          <div class="split">
+            <div class="pane new">
+              <h4>
+                <span data-lang="EN">Phase 1 — Awareness Core</span>
+                <span data-lang="AR" style="direction:rtl">المرحلة ١ — نواة الوعي</span>
+                <span data-lang="ATLAS">Gate A</span>
+                <span class="badge">FOUNDATION</span>
+              </h4>
+              <ul>
+                <li data-lang="EN">Contract file (single source of truth).</li>
+                <li data-lang="EN">detectContext + inferIntent + selectMode.</li>
+                <li data-lang="EN">Renderer obeys mode priorities.</li>
+
+                <li data-lang="AR" style="direction:rtl">ملف عقدة (حقيقة واحدة).</li>
+                <li data-lang="AR" style="direction:rtl">detectContext + inferIntent + selectMode.</li>
+                <li data-lang="AR" style="direction:rtl">الواجهة تطيع أولوية المود.</li>
+
+                <li data-lang="ATLAS">No feature before determinism.</li>
+              </ul>
+            </div>
+
+            <div class="pane">
+              <h4>
+                <span data-lang="EN">Phase 2 — Signals (Optional)</span>
+                <span data-lang="AR" style="direction:rtl">المرحلة ٢ — الإشارات (اختياري)</span>
+                <span data-lang="ATLAS">Gate B</span>
+                <span class="badge">MEASURE</span>
+              </h4>
+              <ul>
+                <li data-lang="EN">Emit minimal events (mode entered, CTA clicked).</li>
+                <li data-lang="EN">No heavy tracking; just awareness.</li>
+                <li data-lang="EN">Export snapshots for reporting.</li>
+
+                <li data-lang="AR" style="direction:rtl">إرسال أحداث بسيطة (دخول مود، ضغط CTA).</li>
+                <li data-lang="AR" style="direction:rtl">بدون تتبع ثقيل… مجرد وعي.</li>
+                <li data-lang="AR" style="direction:rtl">تصدير لقطات للتقارير.</li>
+
+                <li data-lang="ATLAS">Memory without noise.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="pane" style="margin-top:12px;">
+            <h4>
+              <span data-lang="EN">Phase 3 — Integrations</span>
+              <span data-lang="AR" style="direction:rtl">المرحلة ٣ — تكاملات</span>
+              <span data-lang="ATLAS">Gate C</span>
+              <span class="badge">SCALE</span>
+            </h4>
+            <ul>
+              <li data-lang="EN">Connect to CRM / dashboard / campaign tools.</li>
+              <li data-lang="EN">Dynamic content updates (Excel/Sheets bridge optional).</li>
+              <li data-lang="EN">Role-based internal modes (locked).</li>
+
+              <li data-lang="AR" style="direction:rtl">ربط CRM / داشبورد / أدوات حملات.</li>
+              <li data-lang="AR" style="direction:rtl">تحديث محتوى ديناميكي (Excel/Sheets اختياري).</li>
+              <li data-lang="AR" style="direction:rtl">مودات داخلية بصلاحيات (مقفولة).</li>
+
+              <li data-lang="ATLAS">Only after the core is sealed.</li>
+            </ul>
+          </div>
+        </section>
+
+        <!-- ===== GOVERNANCE ===== -->
+        <section class="section" id="gov">
+          <h3>
+            <span data-lang="EN">09) Governance (Anti-Drift)</span>
+            <span data-lang="AR" style="direction:rtl">٩) حوكمة (ضد الدريفت)</span>
+            <span data-lang="ATLAS">09) Drift Prevention Contract</span>
+            <small>SAFETY</small>
+          </h3>
+
+          <ul>
+            <li data-lang="EN"><b>Identity is explicit:</b> owner, role, node type must never be ambiguous.</li>
+            <li data-lang="EN"><b>No silent assumptions:</b> rules are written; silence is never used as approval.</li>
+            <li data-lang="EN"><b>Contract-first:</b> changes happen in the contract, then UI obeys.</li>
+            <li data-lang="EN"><b>Locked internal modes:</b> avoid accidental exposure.</li>
+
+            <li data-lang="AR" style="direction:rtl"><b>الهوية صريحة:</b> المالك والدور ونوع العقدة بدون غموض.</li>
+            <li data-lang="AR" style="direction:rtl"><b>مفيش افتراضات صامتة:</b> القواعد مكتوبة، الصمت مش موافقة.</li>
+            <li data-lang="AR" style="direction:rtl"><b>العقدة أولًا:</b> التغيير في العقدة ثم الواجهة تتبع.</li>
+            <li data-lang="AR" style="direction:rtl"><b>المودات الداخلية مقفولة:</b> منع أي كشف غير مقصود.</li>
+
+            <li data-lang="ATLAS">The void punishes ambiguity.</li>
+          </ul>
+        </section>
+
+        <!-- ===== CONTRACT PREVIEW ===== -->
+        <section class="section" id="contract">
+          <h3>
+            <span data-lang="EN">10) Contract Preview (Next Implementation)</span>
+            <span data-lang="AR" style="direction:rtl">١٠) معاينة العقدة (التنفيذ القادم)</span>
+            <span data-lang="ATLAS">10) Single Source of Truth</span>
+            <small>SPEC</small>
+          </h3>
+
+          <p data-lang="EN">
+            The next step after this atlas is to create a single contract file that drives modes, priorities, copy, and rendering.
+            Below is a preview shape (illustrative only).
+          </p>
+          <p data-lang="AR" style="direction:rtl;text-align:right;">
+            الخطوة الجاية بعد الأطلس ده: ملف عقدة واحد يحكم المودات والأولويات والنصوص والريندر.
+            اللي تحت مجرد شكل إيضاحي.
+          </p>
+          <p data-lang="ATLAS">
+            Contract is law. UI is a reflection. Any feature outside the contract is drift.
+          </p>
+
+          <div class="pane new">
+            <h4>
+              <span data-lang="EN">Illustrative Contract Shape</span>
+              <span data-lang="AR" style="direction:rtl">شكل عقدة إيضاحي</span>
+              <span data-lang="ATLAS">Law Sketch</span>
+              <span class="badge">JSON</span>
+            </h4>
+
+            <pre style="margin:0; padding:12px; border-radius:16px; border:1px solid rgba(255,255,255,.08); background: rgba(5,8,14,.78); overflow:auto; font-family:var(--mono); font-size:11.5px; color:rgba(234,242,255,.90);"><code>{
+  "identity": {
+    "node": "Ω-MEDIA-LINK",
+    "owner": "FOUNDER",
+    "role": "Public Gateway",
+    "tone": "calm-authoritative",
+    "primaryLanguage": "EN"
+  },
+  "contexts": {
+    "instagram": { "defaultMode": "SILENT" },
+    "linkedin":  { "defaultMode": "BUSINESS" },
+    "qr":        { "defaultMode": "CONTACT" }
+  },
+  "intents": {
+    "observe": { "priority": ["about","projects","social"] },
+    "contact": { "priority": ["whatsapp","call","email"] },
+    "work":    { "priority": ["portfolio","cases","linkedin"] }
+  },
+  "modes": {
+    "SILENT":  { "motion": "soft", "density": "low" },
+    "CONTACT": { "motion": "mid",  "density": "mid" },
+    "BUSINESS":{ "motion": "soft", "density": "mid" },
+    "FOUNDER": { "motion": "cinema","density":"high" }
+  }
+}</code></pre>
+          </div>
+        </section>
+
+        <!-- ===== CLOSE ===== -->
+        <section class="section" id="close">
+          <h3>
+            <span data-lang="EN">11) Seal & Signature</span>
+            <span data-lang="AR" style="direction:rtl">١١) الختم والتوقيع</span>
+            <span data-lang="ATLAS">11) Void Seal</span>
+            <small>CLOSURE</small>
+          </h3>
+
+          <p data-lang="EN">
+            This atlas is the “before-code” truth. Implementation must obey it.
+            If the code diverges, the code is wrong—never the atlas.
+          </p>
+          <p data-lang="AR" style="direction:rtl;text-align:right;">
+            الأطلس ده هو الحقيقة قبل الكود. التنفيذ لازم يطيعه.
+            لو الكود اختلف… يبقى الكود غلط، مش الأطلس.
+          </p>
+          <p data-lang="ATLAS">
+            We do not ask reality for permission. We design the rules that reality follows.
+          </p>
+
+          <div class="pane" style="margin-top:10px;">
+            <h4>
+              <span data-lang="EN">Founder Signature</span>
+              <span data-lang="AR" style="direction:rtl">توقيع المؤسس</span>
+              <span data-lang="ATLAS">Signature Node</span>
+              <span class="badge">Jemy</span>
+            </h4>
+            <ul>
+              <li data-lang="EN"><b>System:</b> Ω</li>
+              <li data-lang="EN"><b>Node:</b> Ω-MEDIA-LINK</li>
+              <li data-lang="EN"><b>Authority:</b> Founder / Architect</li>
+
+              <li data-lang="AR" style="direction:rtl"><b>النظام:</b> Ω</li>
+              <li data-lang="AR" style="direction:rtl"><b>العقدة:</b> Ω-MEDIA-LINK</li>
+              <li data-lang="AR" style="direction:rtl"><b>السلطة:</b> Founder / Architect</li>
+
+              <li data-lang="ATLAS">Sealed in the void. Executed in reality.</li>
+            </ul>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <div class="wm" id="wm">
+    <i></i>
+    <div>
+      <b>Ω Internal Atlas</b> <span>• Media Link Shift • For Rama & Dania • Founder: Jemy</span>
+    </div>
+  </div>
+
+  <script>
+    /* ============================================================
+       Ω HUD SCRIPT ENGINE (VOID NATIVE)
+       - Mode3 toggle
+       - Executive control sliders
+       - Canvas void pulse
+       - Snapshot (local) for quick sharing
+       - Shortcuts: 1/2/3, H, P
+       ============================================================ */
+
+    (function(){
+      const $ = (q, el=document)=> el.querySelector(q);
+      const $$ = (q, el=document)=> Array.from(el.querySelectorAll(q));
+
+      // ---------- State ----------
+      const state = {
+        mode: "EN",
+        motion: 1,
+        density: 1,
+        glow: 1,
+        contrast: 1
+      };
+
+      const pillMode = $("#pillMode");
+      const toggles = $$(".toggle[data-setmode]");
+      const ctrl = $("#ctrl");
+      const btnToggleCtrl = $("#btnToggleCtrl");
+      const btnPrintTop = $("#btnPrintTop");
+      const ctrlClose = $("#ctrlClose");
+
+      const rngMotion = $("#rngMotion");
+      const rngDensity = $("#rngDensity");
+      const rngGlow = $("#rngGlow");
+      const rngContrast = $("#rngContrast");
+
+      const btnPrint = $("#btnPrint");
+      const btnReset = $("#btnReset");
+      const btnSnap  = $("#btnSnap");
+
+      const btnModeEN = $("#btnModeEN");
+      const btnModeAR = $("#btnModeAR");
+      const btnModeATLAS = $("#btnModeATLAS");
+      const btnFocus = $("#btnFocus");
+
+      // ---------- Mode apply ----------
+      function setMode(mode){
+        state.mode = mode;
+        document.body.setAttribute("data-mode", mode);
+        pillMode.textContent = "MODE: " + mode;
+
+        toggles.forEach(t=>{
+          t.classList.toggle("active", t.getAttribute("data-setmode") === mode);
+        });
+
+        // subtle executive behavior:
+        // ATLAS increases contrast slightly (if user didn't override)
+        if(mode === "ATLAS" && state.contrast < 1.08){
+          state.contrast = 1.08;
+          rngContrast.value = state.contrast;
+          applyVars();
+        }
+
+        // small scroll hint
+        if(mode === "ATLAS"){
+          // keep it calm; no forced scroll
+        }
+      }
+
+      toggles.forEach(t => t.addEventListener("click", ()=> setMode(t.getAttribute("data-setmode"))));
+      btnModeEN.addEventListener("click", ()=> setMode("EN"));
+      btnModeAR.addEventListener("click", ()=> setMode("AR"));
+      btnModeATLAS.addEventListener("click", ()=> setMode("ATLAS"));
+
+      // ---------- Vars apply ----------
+      function applyVars(){
+        const r = document.documentElement.style;
+        r.setProperty("--motion", String(state.motion));
+        r.setProperty("--density", String(state.density));
+        r.setProperty("--glow", String(state.glow));
+        r.setProperty("--contrast", String(state.contrast));
+      }
+
+      function setFromSliders(){
+        state.motion = parseFloat(rngMotion.value);
+        state.density = parseFloat(rngDensity.value);
+        state.glow = parseFloat(rngGlow.value);
+        state.contrast = parseFloat(rngContrast.value);
+        applyVars();
+      }
+
+      [rngMotion, rngDensity, rngGlow, rngContrast].forEach(inp => inp.addEventListener("input", setFromSliders));
+
+      // ---------- Control panel ----------
+      function toggleCtrl(force){
+        const hide = (typeof force === "boolean") ? force : !ctrl.classList.contains("hidden");
+        ctrl.classList.toggle("hidden", hide);
+      }
+      btnToggleCtrl.addEventListener("click", ()=> toggleCtrl());
+      ctrlClose.addEventListener("click", ()=> toggleCtrl(true));
+
+      // ---------- Print ----------
+      function doPrint(){ window.print(); }
+      btnPrintTop.addEventListener("click", doPrint);
+      btnPrint.addEventListener("click", doPrint);
+
+      // ---------- Reset ----------
+      btnReset.addEventListener("click", ()=>{
+        state.motion = 1; state.density = 1; state.glow = 1; state.contrast = 1;
+        rngMotion.value = 1; rngDensity.value = 1; rngGlow.value = 1; rngContrast.value = 1;
+        applyVars();
+        setMode("EN");
+        toggleCtrl(false);
+      });
+
+      // ---------- Snapshot (local, safe) ----------
+      // Generates a compact summary text copied to clipboard (no external calls)
+      btnSnap.addEventListener("click", async ()=>{
+        const snap =
+`Ω MEDIA LINK ATLAS — SNAPSHOT
+MODE: ${state.mode}
+MOTION: ${state.motion.toFixed(2)}
+DENSITY: ${state.density.toFixed(2)}
+GLOW: ${state.glow.toFixed(2)}
+CONTRAST: ${state.contrast.toFixed(2)}
+KEY THESIS: Static link → Aware Node (Context + Intent + Modes)
+AUDIENCE: Marketing (Rama) • BizDev (Dania)
+FOUNDER: Jemy`;
+
+        try{
+          await navigator.clipboard.writeText(snap);
+          flashPill("SNAPSHOT COPIED");
+        }catch(e){
+          flashPill("COPY FAILED (BROWSER BLOCK)");
+        }
+      });
+
+      function flashPill(msg){
+        const old = pillMode.textContent;
+        pillMode.textContent = msg;
+        pillMode.style.borderColor = "rgba(244,123,70,.35)";
+        pillMode.style.background = "rgba(244,123,70,.12)";
+        setTimeout(()=>{
+          pillMode.textContent = old;
+          pillMode.style.borderColor = "";
+          pillMode.style.background = "";
+        }, 1200);
+      }
+
+      // ---------- Focus ----------
+      btnFocus.addEventListener("click", ()=>{
+        const intro = document.getElementById("intro");
+        intro?.scrollIntoView({behavior: (getComputedStyle(document.documentElement).getPropertyValue("--motion").trim() === "0") ? "auto" : "smooth", block:"start"});
+      });
+
+      // ---------- Shortcuts ----------
+      window.addEventListener("keydown", (e)=>{
+        if(e.key === "1") setMode("EN");
+        if(e.key === "2") setMode("AR");
+        if(e.key === "3") setMode("ATLAS");
+        if(e.key.toLowerCase() === "h") toggleCtrl();
+        if(e.key.toLowerCase() === "p") doPrint();
+      });
+
+      // ---------- Canvas Void Pulse ----------
+      const canvas = document.getElementById("void");
+      const ctx = canvas.getContext("2d");
+      let w=0,h=0, t=0;
+
+      function resize(){
+        const rect = canvas.getBoundingClientRect();
+        w = Math.max(1, Math.floor(rect.width));
+        h = Math.max(1, Math.floor(rect.height));
+        canvas.width = w * devicePixelRatio;
+        canvas.height = h * devicePixelRatio;
+        ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      function draw(){
+        t += 0.016 * (0.2 + state.motion); // motion influences time
+        ctx.clearRect(0,0,w,h);
+
+        // background haze
+        const g = ctx.createRadialGradient(w*0.28,h*0.28, 10, w*0.28,h*0.28, Math.max(w,h)*0.9);
+        g.addColorStop(0, `rgba(0,229,255,${0.12*state.glow})`);
+        g.addColorStop(0.55, `rgba(0,255,213,${0.06*state.glow})`);
+        g.addColorStop(1, `rgba(0,0,0,0)`);
+        ctx.fillStyle = g;
+        ctx.fillRect(0,0,w,h);
+
+        // glowing point (void core)
+        const cx = w*0.5, cy = h*0.62;
+        const pulse = (Math.sin(t*2.2)+1)/2; // 0..1
+        const r = 18 + pulse*26;
+        const core = ctx.createRadialGradient(cx,cy, 2, cx,cy, r*4);
+        core.addColorStop(0, `rgba(244,123,70,${0.28*state.glow})`);
+        core.addColorStop(0.25, `rgba(0,229,255,${0.22*state.glow})`);
+        core.addColorStop(0.55, `rgba(0,255,213,${0.12*state.glow})`);
+        core.addColorStop(1, `rgba(0,0,0,0)`);
+        ctx.fillStyle = core;
+        ctx.beginPath();
+        ctx.arc(cx,cy, r*4, 0, Math.PI*2);
+        ctx.fill();
+
+        // orbit lines (HUD rings)
+        ctx.globalAlpha = 0.25 * state.glow;
+        ctx.strokeStyle = "rgba(0,229,255,.55)";
+        ctx.lineWidth = 1;
+        for(let i=0;i<4;i++){
+          const rr = 56 + i*22 + pulse*8;
+          ctx.beginPath();
+          ctx.ellipse(cx,cy, rr*2.2, rr, (t*0.25)+(i*0.45), 0, Math.PI*2);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+
+        // particles (subtle)
+        const count = Math.floor(18 + 30*state.glow);
+        for(let i=0;i<count;i++){
+          const a = (i/count)*Math.PI*2 + t*0.6;
+          const rr = 80 + i*6 + pulse*18;
+          const px = cx + Math.cos(a)*rr*2.0;
+          const py = cy + Math.sin(a)*rr*0.55;
+          const s = 1 + (i%3);
+          ctx.fillStyle = `rgba(0,229,255,${0.12*state.glow})`;
+          ctx.fillRect(px, py, s, s);
+        }
+
+        requestAnimationFrame(draw);
+      }
+      requestAnimationFrame(draw);
+
+      // ---------- init ----------
+      applyVars();
+      setMode("EN");
+    })();
+  </script>
+</body>
+</html>

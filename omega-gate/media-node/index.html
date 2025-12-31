@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ω Media Node</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg:#070a12; --panel:#0c1220; --cyan:#00e5ff; --orange:#f47b46;
+      --text:#eaf2ff; --muted:#9fb2c8; --r:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Ubuntu;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(0,229,255,.12), transparent 40%),
+        radial-gradient(circle at 80% 30%, rgba(244,123,70,.12), transparent 40%),
+        var(--bg);
+      color:var(--text);
+    }
+    .hud{
+      width:min(980px,92vw); padding:32px; border-radius:var(--r);
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(0,0,0,.2)), var(--panel);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow:0 40px 120px rgba(0,0,0,.6);
+    }
+    .head{display:flex; gap:16px; align-items:center; margin-bottom:24px}
+    .omega{
+      width:48px; height:48px; border-radius:14px; display:grid; place-items:center;
+      font-weight:800; font-size:22px; color:#07121a;
+      background:linear-gradient(135deg, var(--cyan), var(--orange));
+    }
+    h1{margin:0; font-size:20px; letter-spacing:.4px}
+    p{margin:6px 0 0; color:var(--muted)}
+    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:28px}
+    .card{
+      padding:18px; border-radius:14px; text-decoration:none; color:var(--text);
+      background:rgba(255,255,255,.03); border:1px solid rgba(255,255,255,.08);
+      transition:.2s ease;
+      user-select:none;
+    }
+    .card:hover{border-color:var(--cyan); transform:translateY(-2px)}
+    .hidden{display:none}
+    footer{margin-top:28px; font-size:12px; color:var(--muted); text-align:center}
+    .badge{
+      display:inline-block; padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(0,229,255,.25); background:rgba(0,229,255,.08);
+      font-size:12px; margin-left:8px
+    }
+  </style>
+</head>
+
+<body>
+  <main class="hud" id="media-node">
+    <div class="head">
+      <div class="omega">Ω</div>
+      <div>
+        <h1>Omega Media Node <span id="modeBadge" class="badge"></span></h1>
+        <p>Public Gateway • Deterministic • Stateless</p>
+      </div>
+    </div>
+
+    <!-- SILENT -->
+    <section id="mode-SILENT" class="mode">
+      <div class="grid">
+        <a class="card" href="#" data-behavior="B" data-action="explore">Explore Identity</a>
+        <a class="card" href="#" data-behavior="B" data-action="work">View Work</a>
+        <a class="card" href="#" data-behavior="B" data-action="philosophy">Philosophy</a>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="mode-CONTACT" class="mode hidden">
+      <div class="grid">
+        <a class="card" href="tel:+000000000" data-behavior="B" data-action="call">Call</a>
+        <a class="card" href="https://wa.me/000000000" data-behavior="B" data-action="whatsapp">WhatsApp</a>
+        <a class="card" href="#" data-behavior="C" data-action="contact-form">Contact Form</a>
+      </div>
+    </section>
+
+    <!-- BUSINESS -->
+    <section id="mode-BUSINESS" class="mode hidden">
+      <div class="grid">
+        <a class="card" href="#" data-behavior="B" data-action="portfolio">Portfolio</a>
+        <a class="card" href="#" data-behavior="B" data-action="cases">Case Studies</a>
+        <a class="card" href="#" data-behavior="B" data-action="credentials">Credentials</a>
+      </div>
+    </section>
+
+    <!-- FOUNDER -->
+    <section id="mode-FOUNDER" class="mode hidden">
+      <div class="grid">
+        <a class="card" href="#" data-behavior="B" data-action="vision">Vision</a>
+        <a class="card" href="#" data-behavior="B" data-action="architecture">Architecture</a>
+        <a class="card" href="#" data-behavior="B" data-action="signature">Signature</a>
+      </div>
+    </section>
+
+    <footer>
+      Ω Media Node v1 • No tracking • No memory • No assumptions
+    </footer>
+  </main>
+
+  <script type="module">
+    // -------- MODE RESOLUTION (Deterministic) --------
+    const params = new URLSearchParams(location.search);
+    const ref = (document.referrer || '').toLowerCase();
+
+    function resolveMode(){
+      if (params.get('mode') === 'founder') return 'FOUNDER';
+      if (params.get('mode') === 'business') return 'BUSINESS';
+      if (params.get('mode') === 'contact')  return 'CONTACT';
+      if (ref.includes('linkedin')) return 'BUSINESS';
+      if (ref.includes('qr')) return 'CONTACT';
+      return 'SILENT';
+    }
+
+    const MODE = resolveMode();
+    document.getElementById('modeBadge').textContent = MODE;
+
+    // -------- RENDER --------
+    document.querySelectorAll('.mode').forEach(m => m.classList.add('hidden'));
+    const active = document.getElementById(`mode-${MODE}`);
+    if (active) active.classList.remove('hidden');
+
+    // -------- BRNC HOOK (NO TRACKING HERE) --------
+    // Optional external hook: window.__brncEmit(payload)
+    function emitSignal(payload){
+      if (typeof window.__brncEmit === 'function') {
+        window.__brncEmit(payload); // fire-and-forget external module
+      }
+    }
+
+    // -------- EXPLICIT BEHAVIOR ONLY --------
+    document.querySelectorAll('[data-behavior]').forEach(el=>{
+      el.addEventListener('click', (e)=>{
+        const behavior = el.dataset.behavior;
+        const action = el.dataset.action || 'unknown';
+
+        // Explicit signal only (no storage, no backend here)
+        emitSignal({
+          node: "Ω-MEDIA-NODE",
+          behavior,
+          reason: {
+            mode: MODE,
+            page: location.pathname || "/",
+            source: params.get('src') || "direct",
+            device: matchMedia("(max-width: 900px)").matches ? "mobile" : "desktop",
+            lang: document.documentElement.lang || "en"
+          },
+          meta: { action },
+          timestamp: new Date().toISOString()
+        });
+
+        // demo placeholder for href="#"
+        if (el.getAttribute('href') === '#') e.preventDefault();
+      });
+    });
+  </script>
+</body>
+</html>

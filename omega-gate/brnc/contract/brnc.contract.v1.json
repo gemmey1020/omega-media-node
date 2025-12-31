@@ -1,0 +1,50 @@
+{
+  "contract_id": "BRNC-CONTRACT-v1",
+  "status": "LOCKED",
+  "depends_on": [
+    "Ω-MEDIA-MODE-MATRIX-v1",
+    "Ω-MEDIA-BEHAVIOR-SURFACE-v1",
+    "Ω-MEDIA-NODE-BOUNDARIES-v1"
+  ],
+  "service": "BRNC++",
+  "definition": "Behavior → Reason → Node → Consequence",
+  "allowed_behaviors": {
+    "B": "Button Click",
+    "R": "Reservation Submit",
+    "N": "Newsletter Subscribe",
+    "C": "Contact Submit"
+  },
+  "reason_schema": {
+    "source": ["direct", "instagram", "linkedin", "qr", "google"],
+    "mode": ["SILENT", "CONTACT", "BUSINESS", "FOUNDER"],
+    "device": ["mobile", "desktop"],
+    "lang": ["ar", "en"],
+    "page": "string"
+  },
+  "node_schema": {
+    "node": "Ω-MEDIA-NODE",
+    "surface": "public-gateway",
+    "version": "v1"
+  },
+  "consequence_policy": {
+    "allowed": ["ledger_append", "snapshot_create", "human_report"],
+    "forbidden": ["ui_change", "auto_decision", "retargeting", "personalization"]
+  },
+  "prohibitions": [
+    "user_identification",
+    "session_correlation",
+    "fingerprinting",
+    "cookies_storage",
+    "localStorage_storage",
+    "feedback_loops",
+    "backend_calls_from_media_node"
+  ],
+  "event_shape": {
+    "service": "BRNC++",
+    "event": "BEHAVIOR_OCCURRED",
+    "behavior": "B|R|N|C",
+    "node": "Ω-MEDIA-NODE",
+    "reason": "reason_schema",
+    "timestamp": "ISO-8601"
+  }
+}

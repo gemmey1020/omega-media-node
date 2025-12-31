@@ -1,0 +1,86 @@
+{
+  "version": "1.0.0",
+  "identity": {
+    "node": "OMEGA_MEDIA_NODE",
+    "name": "Omega Media Node",
+    "owner": "FOUNDER",
+    "role": "Public Gateway",
+    "primaryLanguage": "EN",
+    "secondaryLanguage": "AR",
+    "defaultMode": "SILENT"
+  },
+  "contexts": {
+    "qr": { "defaultMode": "CONTACT", "confidence": 0.9 },
+    "instagram": { "defaultMode": "SILENT", "confidence": 0.7 },
+    "facebook": { "defaultMode": "SILENT", "confidence": 0.7 },
+    "tiktok": { "defaultMode": "SILENT", "confidence": 0.7 },
+    "linkedin": { "defaultMode": "BUSINESS", "confidence": 0.8 },
+    "google_ads": { "defaultMode": "CONTACT", "confidence": 0.8 },
+    "direct": { "defaultMode": "SILENT", "confidence": 0.55 },
+    "internal_erp": { "defaultMode": "ATLAS", "confidence": 0.95 }
+  },
+  "intents": {
+    "observe": { "priority": ["about", "projects", "social"] },
+    "contact": { "priority": ["whatsapp", "call", "email"] },
+    "work": { "priority": ["portfolio", "cases", "linkedin", "proposal"] },
+    "explore": { "priority": ["services", "pricing", "faq"] }
+  },
+  "modes": {
+    "SILENT": {
+      "motion": 0.25,
+      "density": 0.95,
+      "cta": "soft",
+      "copyTone": "calm",
+      "intentHint": "observe"
+    },
+    "CONTACT": {
+      "motion": 0.55,
+      "density": 1.0,
+      "cta": "hard",
+      "copyTone": "direct",
+      "intentHint": "contact"
+    },
+    "BUSINESS": {
+      "motion": 0.35,
+      "density": 1.05,
+      "cta": "proof",
+      "copyTone": "confident",
+      "intentHint": "work"
+    },
+    "FOUNDER": {
+      "motion": 0.75,
+      "density": 1.1,
+      "cta": "signature",
+      "copyTone": "authoritative",
+      "intentHint": "explore"
+    },
+    "ATLAS": {
+      "motion": 0.15,
+      "density": 1.05,
+      "cta": "internal",
+      "copyTone": "executive",
+      "intentHint": "observe"
+    }
+  },
+  "links": {
+    "whatsapp": { "label": "WhatsApp", "href": "https://wa.me/XXXXXXXXXXX" },
+    "call": { "label": "Call", "href": "tel:+965XXXXXXXX" },
+    "email": { "label": "Email", "href": "mailto:hello@yourdomain.com" },
+    "about": { "label": "About", "href": "/about" },
+    "projects": { "label": "Projects", "href": "/projects" },
+    "portfolio": { "label": "Portfolio", "href": "/portfolio" },
+    "cases": { "label": "Case Studies", "href": "/cases" },
+    "services": { "label": "Services", "href": "/services" },
+    "pricing": { "label": "Pricing", "href": "/pricing" },
+    "faq": { "label": "FAQ", "href": "/faq" },
+    "linkedin": { "label": "LinkedIn", "href": "https://linkedin.com/company/your" },
+    "proposal": { "label": "Request Proposal", "href": "/proposal" },
+    "social": { "label": "Social", "href": "/social" }
+  },
+  "rules": {
+    "internalTokenParam": "_omega",
+    "internalTokenValue": "ATLAS",
+    "maxConfidenceClamp": 1.0,
+    "minConfidenceClamp": 0.0
+  }
+}

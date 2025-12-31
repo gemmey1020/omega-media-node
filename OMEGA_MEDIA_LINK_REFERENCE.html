@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ω Media Link — Reference Document (Omega HUD)</title>
+
+  <!-- =========================
+    Ω MEDIA LINK — HUD REFERENCE
+    Single-file canonical doc
+    Version: 1.0.0
+    ========================= -->
+
+  <style>
+    :root{
+      --bg0:#070a12;
+      --bg1:#0b1020;
+      --panel: rgba(14, 22, 44, 0.62);
+      --panel2: rgba(10, 16, 32, 0.72);
+      --border: rgba(0, 229, 255, 0.18);
+      --border2: rgba(244, 123, 70, 0.22);
+
+      --text:#eaf2ff;
+      --muted: rgba(234,242,255,.68);
+
+      --omegaCyan:#00e5ff;
+      --omegaTeal:#00ffd5;
+      --omegaOrange:#f47b46;
+
+      --good:#29d18b;
+      --warn:#ffcc66;
+      --bad:#ff5d6c;
+
+      --shadow: 0 18px 60px rgba(0,0,0,.55);
+      --blur: blur(18px) saturate(140%);
+
+      --r: 18px;
+      --r2: 26px;
+
+      --grid: rgba(0, 229, 255, 0.06);
+      --grid2: rgba(244, 123, 70, 0.05);
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      color:var(--text);
+      background: radial-gradient(1100px 700px at 12% 18%, rgba(0,229,255,.10), transparent 60%),
+                  radial-gradient(900px 600px at 88% 22%, rgba(244,123,70,.10), transparent 58%),
+                  linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    /* HUD grid overlay */
+    .bg-grid:before{
+      content:"";
+      position:fixed; inset:0;
+      background:
+        linear-gradient(to right, var(--grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid2) 1px, transparent 1px);
+      background-size: 46px 46px;
+      opacity:.95;
+      pointer-events:none;
+      mask-image: radial-gradient(circle at 30% 20%, black 0%, black 35%, transparent 70%);
+    }
+
+    /* top bar */
+    .topbar{
+      position:sticky; top:0; z-index:50;
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      padding:14px 18px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background: rgba(6,10,18,.62);
+      backdrop-filter: var(--blur);
+    }
+    .brand{
+      display:flex; gap:10px; align-items:center;
+      letter-spacing:.4px;
+    }
+    .omega-mark{
+      width:34px; height:34px; border-radius:12px;
+      background: radial-gradient(circle at 30% 30%, rgba(0,229,255,.8), rgba(0,229,255,.12) 52%, rgba(244,123,70,.18) 90%);
+      border:1px solid rgba(0,229,255,.25);
+      box-shadow: 0 0 0 6px rgba(0,229,255,.06);
+      display:grid; place-items:center;
+      font-weight:800;
+    }
+    .brand h1{
+      font-size:14px; margin:0; line-height:1.1;
+    }
+    .brand p{
+      margin:0; font-size:12px; color:var(--muted);
+    }
+
+    .actions{display:flex; gap:10px; align-items:center}
+    .btn{
+      appearance:none; border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:14px;
+      cursor:pointer;
+      transition:.2s ease;
+      font-size:12px;
+      display:flex; align-items:center; gap:8px;
+      user-select:none;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(0,229,255,.28); background: rgba(0,229,255,.06);}
+    .btn.primary{border-color: rgba(244,123,70,.35); background: rgba(244,123,70,.10);}
+    .pill{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(0,229,255,.22);
+      background: rgba(0,229,255,.06);
+      color:rgba(234,242,255,.88);
+    }
+
+    /* layout */
+    .wrap{
+      display:grid;
+      grid-template-columns: 320px 1fr;
+      gap:18px;
+      padding:18px;
+      max-width: 1380px;
+      margin: 0 auto;
+    }
+
+    /* sidebar */
+    .sidebar{
+      position:sticky;
+      top:82px;
+      align-self:start;
+      border-radius: var(--r2);
+      background: var(--panel);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+      overflow:hidden;
+    }
+    .side-head{
+      padding:14px 14px 12px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(0,229,255,.06), rgba(0,0,0,0));
+    }
+    .side-title{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .side-title h2{margin:0; font-size:13px; letter-spacing:.3px;}
+    .side-title .tag{
+      font-family:var(--mono);
+      font-size:11px;
+      padding:5px 8px;
+      border-radius:999px;
+      border:1px solid rgba(244,123,70,.28);
+      background: rgba(244,123,70,.10);
+      color: rgba(234,242,255,.86);
+      white-space:nowrap;
+    }
+    .nav{
+      padding:10px;
+      display:flex; flex-direction:column;
+      gap:6px;
+    }
+    .nav a{
+      text-decoration:none;
+      color: rgba(234,242,255,.88);
+      border:1px solid rgba(255,255,255,.07);
+      background: rgba(0,0,0,.12);
+      padding:10px 10px;
+      border-radius:14px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      transition:.18s ease;
+      font-size:12px;
+    }
+    .nav a:hover{
+      border-color: rgba(0,229,255,.26);
+      background: rgba(0,229,255,.06);
+      transform: translateX(2px);
+    }
+    .nav a span{
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(234,242,255,.62);
+    }
+
+    .side-foot{
+      padding:12px 14px 14px;
+      border-top:1px solid rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.55;
+    }
+
+    /* main content */
+    .main{
+      border-radius: var(--r2);
+      background: var(--panel2);
+      border:1px solid rgba(255,255,255,.08);
+      box-shadow: var(--shadow);
+      backdrop-filter: var(--blur);
+      overflow:hidden;
+      position:relative;
+    }
+    .main:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(600px 260px at 20% 0%, rgba(0,229,255,.12), transparent 60%),
+                  radial-gradient(520px 240px at 86% 0%, rgba(244,123,70,.12), transparent 58%);
+      pointer-events:none;
+    }
+    .content{
+      position:relative;
+      padding: 18px 18px 30px;
+    }
+
+    .hero{
+      padding: 16px 16px 14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      border-radius: var(--r2);
+      margin-bottom: 14px;
+    }
+    .hero h2{
+      margin:0 0 6px;
+      font-size: 18px;
+      letter-spacing:.2px;
+    }
+    .hero p{
+      margin:0;
+      color: var(--muted);
+      line-height:1.6;
+      font-size: 13px;
+      max-width: 900px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    @media (max-width: 1080px){
+      .wrap{grid-template-columns:1fr}
+      .sidebar{position:relative; top:auto}
+      .grid{grid-template-columns:1fr}
+    }
+
+    .card{
+      border-radius: var(--r2);
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      padding: 14px 14px 12px;
+    }
+    .card h3{
+      margin:0 0 8px;
+      font-size: 13px;
+      letter-spacing:.25px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+    }
+    .card h3 small{
+      font-family:var(--mono);
+      font-size:11px;
+      color: rgba(234,242,255,.62);
+      border:1px solid rgba(0,229,255,.18);
+      background: rgba(0,229,255,.06);
+      padding: 4px 8px;
+      border-radius: 999px;
+      white-space:nowrap;
+    }
+    .card p, .card li{
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.65;
+    }
+    .card ul{margin:8px 0 0 18px; padding:0}
+    .card code, pre code{
+      font-family:var(--mono);
+      font-size: 11.5px;
+      color: rgba(234,242,255,.9);
+    }
+    pre{
+      margin:10px 0 0;
+      padding:12px 12px;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(5,8,14,.78);
+      overflow:auto;
+    }
+
+    .kpi{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 1080px){
+      .kpi{grid-template-columns: 1fr 1fr}
+    }
+    .k{
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      padding: 10px 10px;
+      min-height: 70px;
+    }
+    .k b{display:block; font-size:12px; letter-spacing:.2px}
+    .k span{display:block; margin-top:6px; font-family:var(--mono); font-size:11px; color:rgba(234,242,255,.66)}
+    .k .dot{
+      width:9px;height:9px;border-radius:99px; display:inline-block; margin-right:7px;
+      background: var(--omegaCyan);
+      box-shadow: 0 0 0 6px rgba(0,229,255,.07);
+    }
+    .k.good .dot{background:var(--good); box-shadow: 0 0 0 6px rgba(41,209,139,.10);}
+    .k.warn .dot{background:var(--warn); box-shadow: 0 0 0 6px rgba(255,204,102,.10);}
+    .k.bad  .dot{background:var(--bad);  box-shadow: 0 0 0 6px rgba(255,93,108,.10);}
+
+    /* watermark + signature */
+    .watermark{
+      position:fixed;
+      inset:auto 12px 12px auto;
+      z-index: 60;
+      pointer-events:none;
+      opacity: .22;
+      font-family: var(--mono);
+      font-size: 11px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: var(--blur);
+      padding: 8px 10px;
+      border-radius: 14px;
+    }
+
+    /* print mode */
+    @media print{
+      body{background:#fff; color:#111}
+      .bg-grid:before{display:none}
+      .topbar, .watermark{display:none !important}
+      .wrap{max-width:none; padding:0}
+      .sidebar{display:none}
+      .main{box-shadow:none; border:none; background:#fff}
+      .card, .hero, pre{border:1px solid #ddd; background:#fff}
+      .card p, .card li, .hero p{color:#333}
+      pre{page-break-inside:avoid}
+      a{color:#000 !important; text-decoration:none}
+    }
+  </style>
+</head>
+
+<body class="bg-grid">
+  <div class="topbar">
+    <div class="brand">
+      <div class="omega-mark">Ω</div>
+      <div>
+        <h1>Ω Media Link — Reference Document</h1>
+        <p>Canonical HUD Spec • Single-file • Version 1.0.0</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <span class="pill" id="modePill">MODE: REFERENCE</span>
+      <button class="btn" onclick="window.print()">Print / PDF</button>
+      <button class="btn primary" id="execToggleBtn">Executive View</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <aside class="sidebar">
+      <div class="side-head">
+        <div class="side-title">
+          <h2>Index</h2>
+          <div class="tag">Ω-MEDIA-NODE</div>
+        </div>
+      </div>
+
+      <nav class="nav" id="nav">
+        <a href="#purpose">Purpose <span>#01</span></a>
+        <a href="#definition">Definition <span>#02</span></a>
+        <a href="#awareness">Awareness Model <span>#03</span></a>
+        <a href="#architecture">Architecture <span>#04</span></a>
+        <a href="#data">Data Contract <span>#05</span></a>
+        <a href="#modes">Mode Matrix <span>#06</span></a>
+        <a href="#rendering">Rendering Rules <span>#07</span></a>
+        <a href="#signals">Signals / Memory <span>#08</span></a>
+        <a href="#checklist">Implementation Checklist <span>#09</span></a>
+        <a href="#filetree">Suggested File Tree <span>#10</span></a>
+        <a href="#governance">Governance <span>#11</span></a>
+        <a href="#roadmap">Roadmap <span>#12</span></a>
+      </nav>
+
+      <div class="side-foot">
+        <b style="color:rgba(234,242,255,.9)">Rule:</b>
+        This document is canonical. UI is a result of the engine, not a preference.
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+
+        <section class="hero" id="purpose">
+          <h2>01) Purpose</h2>
+          <p>
+            Ω Media Link is not a “linktree”. It is a public-facing Omega Node that acts as an identity gateway.
+            This reference defines the awareness model, mode engine, data contract, and rendering rules.
+          </p>
+
+          <div class="kpi" aria-label="kpis">
+            <div class="k good"><b><span class="dot"></span>Scope</b><span>Public Gateway / Identity Surface</span></div>
+            <div class="k"><b><span class="dot"></span>Core</b><span>Context + Intent + Mode Engine</span></div>
+            <div class="k warn"><b><span class="dot"></span>Data</b><span>Single Source of Truth (contract)</span></div>
+            <div class="k bad"><b><span class="dot"></span>Risk</b><span>Drift if identity is ambiguous</span></div>
+          </div>
+        </section>
+
+        <div class="grid">
+          <section class="card" id="definition">
+            <h3>02) Definition <small>WHAT IT IS</small></h3>
+            <p>
+              <b>Ω Media Link</b> is a surface identity node that:
+            </p>
+            <ul>
+              <li>Detects context (UTM / referrer / device / time).</li>
+              <li>Infers intent (contact / work / observe / explore).</li>
+              <li>Selects a mode (silent / business / contact / founder / internal).</li>
+              <li>Renders UI accordingly (links, order, copy, tone, animations).</li>
+            </ul>
+            <p>
+              It must remain minimal, calm, and authoritative. It never “explains”; it routes.
+            </p>
+          </section>
+
+          <section class="card" id="awareness">
+            <h3>03) Awareness Model <small>WHAT “AWARE” MEANS</small></h3>
+            <ul>
+              <li><b>Self-Awareness:</b> identity, owner, role, tone.</li>
+              <li><b>Context-Awareness:</b> where/from/when/how opened.</li>
+              <li><b>Visitor-Awareness:</b> language/device/returning.</li>
+              <li><b>Intent-Awareness:</b> inferred purpose.</li>
+              <li><b>Mode Selection:</b> deterministic mode engine.</li>
+              <li><b>Signals:</b> optional event emission (memory-friendly).</li>
+            </ul>
+          </section>
+
+          <section class="card" id="architecture">
+            <h3>04) Architecture <small>LAYERS</small></h3>
+            <pre><code>Ω-Media-Link
+├─ Identity Layer     (Who am I?)
+├─ Context Layer      (Where/when/from?)
+├─ Intent Layer       (Why opened?)
+├─ Mode Engine        (Which persona?)
+├─ Renderer           (UI as a result)
+└─ Signal Layer       (Optional)</code></pre>
+            <p>
+              The renderer must not decide behavior. All decisions come from Mode Engine using the contract.
+            </p>
+          </section>
+
+          <section class="card" id="data">
+            <h3>05) Data Contract <small>SINGLE SOURCE OF TRUTH</small></h3>
+            <p>Suggested shape (high-level):</p>
+            <pre><code>{
+  "identity": {
+    "node": "Ω-MEDIA-LINK",
+    "owner": "FOUNDER",
+    "role": "Public Gateway",
+    "tone": "calm-authoritative",
+    "trustLevel": "open"
+  },
+  "contexts": {
+    "default": { "theme": "omega-cyan" },
+    "instagram": { "intent": "observe" },
+    "qr": { "intent": "contact" },
+    "linkedin": { "intent": "work" }
+  },
+  "intents": {
+    "observe": { "cta": "Explore", "priority": ["about","projects","social"] },
+    "contact": { "cta": "Contact", "priority": ["whatsapp","call","email"] },
+    "work":    { "cta": "Hire",    "priority": ["portfolio","cases","linkedin"] }
+  },
+  "modes": {
+    "SILENT":   { "ui": { "density":"low", "motion":"soft" } },
+    "CONTACT":  { "ui": { "density":"mid", "motion":"mid" } },
+    "BUSINESS": { "ui": { "density":"mid", "motion":"soft" } },
+    "FOUNDER":  { "ui": { "density":"high","motion":"cinema" } },
+    "INTERNAL": { "locked": true }
+  }
+}</code></pre>
+          </section>
+
+          <section class="card" id="modes">
+            <h3>06) Mode Matrix <small>DETERMINISTIC</small></h3>
+            <p>Example mapping rules (simplified):</p>
+            <pre><code>// Inputs: source, referrer, utm, device, language, visit
+// Output: mode
+
+IF context.source == "qr"            → CONTACT
+IF context.source == "instagram"      → SILENT
+IF context.source == "linkedin"       → BUSINESS
+IF context.trust == "internal"        → INTERNAL (locked)
+IF context.ownerView == true          → FOUNDER
+ELSE                                  DEFAULT (SILENT)</code></pre>
+            <p>
+              Modes define: link ordering, copy tone, density, motion level, and CTA type.
+            </p>
+          </section>
+
+          <section class="card" id="rendering">
+            <h3>07) Rendering Rules <small>UI IS A RESULT</small></h3>
+            <ul>
+              <li>Never show “everything” to everyone.</li>
+              <li>Sort links by mode priority.</li>
+              <li>Copy must be short and directive (no long explanations).</li>
+              <li>Motion level depends on mode (cinema only in FOUNDER view).</li>
+              <li>Accessibility: reduced motion support is mandatory.</li>
+            </ul>
+          </section>
+
+          <section class="card" id="signals">
+            <h3>08) Signals / Memory <small>OPTIONAL</small></h3>
+            <p>
+              Signals are not “tracking”. They are minimal event emissions for Omega awareness.
+            </p>
+            <pre><code>{
+  "node": "Ω-MEDIA",
+  "event": "MODE_ENTERED",
+  "mode": "CONTACT",
+  "timestamp": "ISO8601",
+  "confidence": 0.82
+}</code></pre>
+            <p>
+              If implemented: emit-only by default. No server dependency required.
+            </p>
+          </section>
+
+          <section class="card" id="checklist">
+            <h3>09) Implementation Checklist <small>PHASES</small></h3>
+            <ul>
+              <li><b>Phase 1:</b> identity contract + context detection + intent inference</li>
+              <li><b>Phase 2:</b> mode engine + renderer mapping + UI toggles</li>
+              <li><b>Phase 3:</b> signals (optional) + export + audit logs</li>
+              <li><b>Phase 4:</b> internal locked mode (optional) + permissions</li>
+            </ul>
+            <p>
+              “No mode without contract.” “No UI decision inside components.”
+            </p>
+          </section>
+
+          <section class="card" id="filetree">
+            <h3>10) Suggested File Tree <small>VITE + REACT</small></h3>
+            <pre><code>src/
+  data/
+    media.contract.json
+  core/
+    context/
+      detectContext.ts
+      inferIntent.ts
+      selectMode.ts
+    engine/
+      omegaMediaEngine.ts
+    types/
+      media.types.ts
+  ui/
+    components/
+      LinkGrid.tsx
+      ModeBadge.tsx
+      QRBlock.tsx
+    views/
+      MediaLinkPage.tsx</code></pre>
+          </section>
+
+          <section class="card" id="governance">
+            <h3>11) Governance <small>ANTI-DRIFT</small></h3>
+            <ul>
+              <li>Identity owner and canonical roles must never be ambiguous.</li>
+              <li>Any rename requires contract update + changelog entry.</li>
+              <li>Internal modes must be locked (no accidental exposure).</li>
+              <li>Do not rely on silent assumptions; rules must be explicit.</li>
+            </ul>
+          </section>
+
+          <section class="card" id="roadmap">
+            <h3>12) Roadmap <small>NEXT</small></h3>
+            <ul>
+              <li><b>V1:</b> deterministic awareness + mode engine + minimal UI</li>
+              <li><b>V2:</b> signal layer + export (PDF / JSON snapshot)</li>
+              <li><b>V3:</b> live bridge (Excel/Sheets) for content updates (optional)</li>
+            </ul>
+            <p>
+              This doc is the canonical reference for upgrades and audits.
+            </p>
+          </section>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="watermark" id="wm">
+    Ω • Reference • Watermark • Company: <span style="color:rgba(0,229,255,.75)">[PLACEHOLDER]</span>
+  </div>
+
+  <script>
+    (function(){
+      const execBtn = document.getElementById('execToggleBtn');
+      const modePill = document.getElementById('modePill');
+      let exec = false;
+
+      execBtn.addEventListener('click', () => {
+        exec = !exec;
+        document.body.style.filter = exec ? 'contrast(1.05) saturate(1.05)' : 'none';
+        modePill.textContent = exec ? 'MODE: EXECUTIVE' : 'MODE: REFERENCE';
+        execBtn.textContent = exec ? 'Exit Executive View' : 'Executive View';
+      });
+    })();
+  </script>
+</body>
+</html>
