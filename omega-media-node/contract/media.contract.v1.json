@@ -1,86 +1,195 @@
 {
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "version": "1.0.0",
+  "sealed": true,
+
   "identity": {
     "node": "OMEGA_MEDIA_NODE",
-    "name": "Omega Media Node",
-    "owner": "FOUNDER",
-    "role": "Public Gateway",
-    "primaryLanguage": "EN",
-    "secondaryLanguage": "AR",
+    "title": "Omega Media Node",
+    "founder": "JEMY",
+    "ownerRole": "FOUNDER_ARCHITECT",
+    "authority": "CANONICAL",
+    "scope": "PUBLIC_AWARE_NODE",
+    "defaultLanguage": "en",
+    "secondaryLanguage": "ar",
     "defaultMode": "SILENT"
   },
+
+  "governance": {
+    "driftPolicy": "ZERO_TOLERANCE",
+    "decisionSource": "ENGINE_ONLY",
+    "uiAuthority": "NONE",
+    "changeRule": "CONTRACT_UPDATE_REQUIRED"
+  },
+
   "contexts": {
-    "qr": { "defaultMode": "CONTACT", "confidence": 0.9 },
-    "instagram": { "defaultMode": "SILENT", "confidence": 0.7 },
-    "facebook": { "defaultMode": "SILENT", "confidence": 0.7 },
-    "tiktok": { "defaultMode": "SILENT", "confidence": 0.7 },
-    "linkedin": { "defaultMode": "BUSINESS", "confidence": 0.8 },
-    "google_ads": { "defaultMode": "CONTACT", "confidence": 0.8 },
-    "direct": { "defaultMode": "SILENT", "confidence": 0.55 },
-    "internal_erp": { "defaultMode": "ATLAS", "confidence": 0.95 }
-  },
-  "intents": {
-    "observe": { "priority": ["about", "projects", "social"] },
-    "contact": { "priority": ["whatsapp", "call", "email"] },
-    "work": { "priority": ["portfolio", "cases", "linkedin", "proposal"] },
-    "explore": { "priority": ["services", "pricing", "faq"] }
-  },
-  "modes": {
-    "SILENT": {
-      "motion": 0.25,
-      "density": 0.95,
-      "cta": "soft",
-      "copyTone": "calm",
-      "intentHint": "observe"
+    "qr": {
+      "defaultMode": "CONTACT",
+      "confidence": 0.9
     },
-    "CONTACT": {
-      "motion": 0.55,
-      "density": 1.0,
-      "cta": "hard",
-      "copyTone": "direct",
-      "intentHint": "contact"
+    "instagram": {
+      "defaultMode": "SILENT",
+      "confidence": 0.7
     },
-    "BUSINESS": {
-      "motion": 0.35,
-      "density": 1.05,
-      "cta": "proof",
-      "copyTone": "confident",
-      "intentHint": "work"
+    "facebook": {
+      "defaultMode": "SILENT",
+      "confidence": 0.7
     },
-    "FOUNDER": {
-      "motion": 0.75,
-      "density": 1.1,
-      "cta": "signature",
-      "copyTone": "authoritative",
-      "intentHint": "explore"
+    "tiktok": {
+      "defaultMode": "SILENT",
+      "confidence": 0.7
     },
-    "ATLAS": {
-      "motion": 0.15,
-      "density": 1.05,
-      "cta": "internal",
-      "copyTone": "executive",
-      "intentHint": "observe"
+    "linkedin": {
+      "defaultMode": "BUSINESS",
+      "confidence": 0.85
+    },
+    "google_ads": {
+      "defaultMode": "CONTACT",
+      "confidence": 0.8
+    },
+    "direct": {
+      "defaultMode": "SILENT",
+      "confidence": 0.55
+    },
+    "internal_erp": {
+      "defaultMode": "ATLAS",
+      "confidence": 0.95,
+      "locked": true
     }
   },
-  "links": {
-    "whatsapp": { "label": "WhatsApp", "href": "https://wa.me/XXXXXXXXXXX" },
-    "call": { "label": "Call", "href": "tel:+965XXXXXXXX" },
-    "email": { "label": "Email", "href": "mailto:hello@yourdomain.com" },
-    "about": { "label": "About", "href": "/about" },
-    "projects": { "label": "Projects", "href": "/projects" },
-    "portfolio": { "label": "Portfolio", "href": "/portfolio" },
-    "cases": { "label": "Case Studies", "href": "/cases" },
-    "services": { "label": "Services", "href": "/services" },
-    "pricing": { "label": "Pricing", "href": "/pricing" },
-    "faq": { "label": "FAQ", "href": "/faq" },
-    "linkedin": { "label": "LinkedIn", "href": "https://linkedin.com/company/your" },
-    "proposal": { "label": "Request Proposal", "href": "/proposal" },
-    "social": { "label": "Social", "href": "/social" }
+
+  "modes": {
+    "SILENT": {
+      "intentHint": "OBSERVE",
+      "uiProfile": {
+        "motion": 0.25,
+        "density": 0.95,
+        "ctaStyle": "SOFT",
+        "tone": "CALM"
+      }
+    },
+    "CONTACT": {
+      "intentHint": "CONTACT",
+      "uiProfile": {
+        "motion": 0.55,
+        "density": 1.0,
+        "ctaStyle": "HARD",
+        "tone": "DIRECT"
+      }
+    },
+    "BUSINESS": {
+      "intentHint": "WORK",
+      "uiProfile": {
+        "motion": 0.35,
+        "density": 1.05,
+        "ctaStyle": "PROOF",
+        "tone": "CONFIDENT"
+      }
+    },
+    "FOUNDER": {
+      "intentHint": "EXPLORE",
+      "uiProfile": {
+        "motion": 0.75,
+        "density": 1.1,
+        "ctaStyle": "SIGNATURE",
+        "tone": "AUTHORITATIVE"
+      }
+    },
+    "ATLAS": {
+      "intentHint": "OBSERVE",
+      "uiProfile": {
+        "motion": 0.15,
+        "density": 1.05,
+        "ctaStyle": "INTERNAL",
+        "tone": "EXECUTIVE"
+      }
+    }
   },
+
+  "intents": {
+    "OBSERVE": {
+      "priority": ["about", "projects", "social"]
+    },
+    "CONTACT": {
+      "priority": ["whatsapp", "call", "email"]
+    },
+    "WORK": {
+      "priority": ["portfolio", "cases", "linkedin", "proposal"]
+    },
+    "EXPLORE": {
+      "priority": ["services", "pricing", "faq"]
+    }
+  },
+
+  "links": {
+    "whatsapp": {
+      "label": "WhatsApp",
+      "href": "https://wa.me/XXXXXXXXXXX"
+    },
+    "call": {
+      "label": "Call",
+      "href": "tel:+965XXXXXXXX"
+    },
+    "email": {
+      "label": "Email",
+      "href": "mailto:hello@yourdomain.com"
+    },
+    "about": {
+      "label": "About",
+      "href": "/about"
+    },
+    "projects": {
+      "label": "Projects",
+      "href": "/projects"
+    },
+    "portfolio": {
+      "label": "Portfolio",
+      "href": "/portfolio"
+    },
+    "cases": {
+      "label": "Case Studies",
+      "href": "/cases"
+    },
+    "services": {
+      "label": "Services",
+      "href": "/services"
+    },
+    "pricing": {
+      "label": "Pricing",
+      "href": "/pricing"
+    },
+    "faq": {
+      "label": "FAQ",
+      "href": "/faq"
+    },
+    "linkedin": {
+      "label": "LinkedIn",
+      "href": "https://linkedin.com/company/your"
+    },
+    "proposal": {
+      "label": "Request Proposal",
+      "href": "/proposal"
+    },
+    "social": {
+      "label": "Social",
+      "href": "/social"
+    }
+  },
+
   "rules": {
-    "internalTokenParam": "_omega",
-    "internalTokenValue": "ATLAS",
-    "maxConfidenceClamp": 1.0,
-    "minConfidenceClamp": 0.0
+    "internalToken": {
+      "param": "_omega",
+      "value": "ATLAS"
+    },
+    "confidenceClamp": {
+      "min": 0.0,
+      "max": 1.0
+    }
+  },
+
+  "audit": {
+    "createdBy": "JEMY",
+    "createdAt": "ISO_8601",
+    "notes": "Contract-first. Engine is the only authority."
   }
 }
