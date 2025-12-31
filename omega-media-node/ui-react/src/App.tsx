@@ -13,6 +13,10 @@ export default function App() {
       className="hud-root"
       data-mode={decision.mode}
       data-intent={decision.intent}
+      style={{
+        ["--motion" as any]: decision.uiProfile.motion,
+        ["--density" as any]: decision.uiProfile.density,
+      }}
     >
       <div className="hud-bg" aria-hidden="true">
         <div className="hud-grid" />
