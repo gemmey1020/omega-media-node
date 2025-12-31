@@ -78,12 +78,14 @@ body{
 .hud-brand{display:flex; align-items:center; gap:12px}
 .hud-sigil{
   width:44px; height:44px; border-radius:14px;
-  border:1px solid rgba(0,229,255,.35);
+  border:1px solid var(--accent-soft);
   background:
     radial-gradient(circle at 30% 30%, rgba(0,229,255,.55), transparent 55%),
     radial-gradient(circle at 70% 70%, rgba(24,255,209,.35), transparent 55%),
     linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02));
-  box-shadow: 0 0 0 1px rgba(0,229,255,.10) inset, 0 0 28px rgba(0,229,255,.15);
+  box-shadow:
+    0 0 0 1px var(--accent-soft) inset,
+    0 0 28px var(--accent-glow);
   position:relative;
 }
 .hud-sigil::after{
@@ -111,9 +113,8 @@ body{
 .hud-pill-label{font-size:11px; opacity:.7; letter-spacing:.12em}
 .hud-pill-value{font-size:12px; font-weight:800}
 .hud-dot{
-  width:8px; height:8px; border-radius:50%;
-  background: var(--omega);
-  box-shadow: 0 0 18px rgba(0,229,255,.55);
+  background: var(--accent);
+  box-shadow: 0 0 18px var(--accent-glow);
 }
 
 .hud-main{
@@ -142,8 +143,9 @@ body{
   font-size:11px;
   padding:6px 10px;
   border-radius:999px;
-  border:1px solid rgba(0,229,255,.28);
-  background: rgba(0,229,255,.08);
+  border:1px solid  var(--accent-soft);
+  /* border-color: var(--accent-soft); */
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
   color: rgba(234,246,255,.9);
 }
 
@@ -204,8 +206,10 @@ body{
 }
 .hud-link:hover{
   transform: translateY(-2px);
-  border-color: rgba(0,229,255,.26);
-  box-shadow: 0 0 0 1px rgba(0,229,255,.10) inset, 0 18px 50px rgba(0,0,0,.35);
+  border-color:var(--accent-soft);
+box-shadow:
+    0 0 0 1px var(--accent-soft) inset,
+    0 18px 50px rgba(0,0,0,.35);
 }
 .hud-link-title{
   font-weight:900;
@@ -216,4 +220,56 @@ body{
   font-size:12px;
   margin-top:6px;
   word-break: break-word;
+}
+
+/* =========================================================
+   Ω MODE THEMING — PURE CSS (NO UI AUTHORITY)
+   ========================================================= */
+
+/* Default / Fallback */
+.hud-root{
+  --accent: var(--omega);
+  --accent-soft: rgba(0,229,255,.22);
+  --accent-glow: rgba(0,229,255,.35);
+  --cta: var(--omega);
+}
+
+/* CONTACT — Warm / Conversion */
+.hud-root[data-mode="CONTACT"]{
+  --accent: var(--warm);
+  --accent-soft: rgba(244,123,70,.28);
+  --accent-glow: rgba(244,123,70,.45);
+  --cta: var(--warm);
+}
+
+/* BUSINESS — Trust / Corporate */
+.hud-root[data-mode="BUSINESS"]{
+  --accent: #7fd6ff;
+  --accent-soft: rgba(127,214,255,.26);
+  --accent-glow: rgba(127,214,255,.42);
+  --cta: #7fd6ff;
+}
+
+/* ATLAS — Executive / Founder */
+.hud-root[data-mode="ATLAS"]{
+  --accent: #bfa7ff;
+  --accent-soft: rgba(191,167,255,.26);
+  --accent-glow: rgba(191,167,255,.48);
+  --cta: #bfa7ff;
+}
+
+/* FOUNDER — Authority / Deep */
+.hud-root[data-mode="FOUNDER"]{
+  --accent: #18ffd1;
+  --accent-soft: rgba(24,255,209,.26);
+  --accent-glow: rgba(24,255,209,.45);
+  --cta: #18ffd1;
+}
+
+/* SILENT — Minimal / Observing */
+.hud-root[data-mode="SILENT"]{
+  --accent: rgba(234,246,255,.55);
+  --accent-soft: rgba(234,246,255,.18);
+  --accent-glow: rgba(234,246,255,.28);
+  --cta: rgba(234,246,255,.65);
 }
